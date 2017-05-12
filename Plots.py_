@@ -1,0 +1,209 @@
+import seaborn as sns
+import statsmodels.api as sm
+from numpy import sort, linspace, cumsum, exp
+from pandas import Series
+
+from MetricsG import _calc_mutual_pdf
+
+
+def plot_roc_by_setting(res, net_params, save_path=None):
+    """
+    plots curves for different anomalies for one setting
+    :param res:
+    :param net_params:
+    :param save_path:
+    :return:
+    """
+    figaxes = []
+
+    for i, params in net_params.items():
+        fig = sns.plt.figure()
+        fig.suptitle("ROC curve of different anomalies: setting {}".format(i))
+        ax = fig.add_subplot(111)
+        for anomaly in res["FPR"].columns:
+            ax.plot(res["FPR"].loc[i, anomaly], res["TPR"].loc[i, anomaly],
+                    label="anomaly: {anomaly}. AUC: {auc:.2%}".format(anomaly=anomaly, auc=res["AUC"].loc[i, anomaly]))
+
+        ax.legend(loc="lower right")
+        ax.plot([0, 1], [0, 1], linestyle="--")
+        ax.set_xlabel("False Positive Rate")
+        ax.set_ylabel("True Positive Rate")
+        # fig.show()
+        # sns.plt.show(block=True)
+        figaxes.append((fig, ax))
+        if save_path is not None:
+            fig.savefig(save_path + "_roc")
+
+    return figaxes
+
+
+def plot_roc_by_anomaly(res, net_params, save_path=None):
+    """
+    plots curves for different anomalies for one setting
+    :param res:
+    :param net_params:
+    :param save_path:
+    :return:
+    """
+    raise NotImplementedError
+
+
+def plot_auc_by_setting(auc_df, net_params, space_out=False, save_path=None):
+    """
+    plots curves for different anomalies for one setting
+    :param res:
+    :param net_params:
+    :param save_path:
+    :return:
+    """
+    auc_df = auc_df.sort_index(ascending=True)      # maybe exp the values first to space them out
+    auc_df = auc_df.astype(float)
+    if space_out:
+        auc_df = exp(auc_df)
+    ax = auc_df.plot(kind="line", marker=".")
+    ax.set_ylabel("AUC")
+    ax.set_xlabel("Setting")
+    ax.set_xticks(auc_df.index)
+    ax.set_xlim((auc_df.index.min() - 0.05, auc_df.index.max() + 0.05))
+    fig = ax.get_figure()
+    fig.suptitle("AUC over different settings")
+
+    if save_path is not None:
+        fig.savefig(save_path + "_auc_by_set")
+
+    return fig, ax
+
+
+def plot_anomaly_confidence(res, net_params, save_path=None):
+    """
+    plot the discriminator confidence as the anomaly grows
+    :param res:
+    :param net_params:
+    :param save_path:
+    :return:
+    """
+    figaxes = []
+
+    for i, params in net_params.items():
+        fig = sns.plt.figure()
+        ax = res["mean_conf"].loc[(i, "anomaly")].plot(kind="line",
+                                                       title="Discriminator Mean Confidence: setting {}".format(i),
+                                                       legend=True,
+                                                       marker=".")
+        ax.plot([0], [res["mean_conf"].loc[(i, "data"), res["mean_conf"].columns[0]]],
+                marker="*", color="r", label="({}, data)".format(i))           # real data point at anomaly = 0
+        ax.legend()
+        ax.set_xlim(0 - 1, res["mean_conf"].columns.max() + 1)
+        # fig.show()
+        # sns.plt.show(block=True)
+        figaxes.append((fig, ax))
+        if save_path is not None:
+            fig.savefig(save_path + "_mean_conf")
+
+    return figaxes
+
+
+def QQ_plot(true_distribution, generated_samples, line="45", save_path=None):
+    """
+    creates Q-Q plot of Generator samples
+    :param true_distribution: Distribution object.
+    :param generated_samples: 1D array of samples from the generator
+    :param line: type of line to draw on the plot diagonal.
+    :type line: str {‘45’, ‘s’, ‘r’, q’} or None
+    :param save_path:
+    :return:
+    """
+    fig = sm.qqplot(data=generated_samples, dist=true_distribution.get_type(),
+                     loc=true_distribution.get_loc(), scale=true_distribution.get_scale(),
+                     fit=False, line=line)
+    fig.suptitle("Q-Q Plot of the Generated Samples")
+    if save_path is not None:
+        fig.savefig(save_path + "_qqplot")
+
+    return fig
+
+
+def plot_cdf(true_samples, generated_samples, save_path=None):
+    # g_samples = sort(generated_samples).cumsum()
+    # g_samples /= g_samples[-1]      # normalize
+    # ax.plot(linspace(0, 1, g_samples.shape[0]), g_samples, label="Generated")
+    # ax.legend()
+    # ax.set_figure(fig)
+    fig = sns.plt.figure()
+    ax = sns.distplot(true_samples, hist=False, kde=True, kde_kws={'cumulative': True}, label="True")
+    gen_samples_sort = sort(generated_samples.flatten())
+    gen_samples_summed = cumsum(gen_samples_sort)
+    gen_samples_summed = (gen_samples_summed - min(gen_samples_summed)) / \
+                         (max(gen_samples_summed) - min(gen_samples_summed))
+    ax.plot(gen_samples_sort, gen_samples_summed, label="Generated")
+    ax.legend(loc="upper left")
+    # ax = sns.distplot(generated_samples, hist=False, kde=True, kde_kws={'cumulative': True}, label="Generated")
+    ax.set_ylim(-0.05, 1.05)
+    fig.suptitle("True and Generated Empirical CDF")
+    if save_path is not None:
+        fig.savefig(save_path + "_cdf_g")
+
+    return fig, ax
+
+
+def plot_pdf(true_samples, generated_samples, save_path=None):
+    fig = sns.plt.figure()
+    # true_pdf, gen_pdf = _calc_mutual_pdf(true_samples, generated_samples, bin_num=100)
+    # ax = Series(true_samples).hist(bins=200, label="True", alpha=0.6, histtype="stepfilled")
+    # Series(generated_samples.flatten()).hist(bins=200, label="Generated", ax=ax, alpha=0.6, histtype="stepfilled")
+    ax = sns.distplot(true_samples, bins=200, hist=True, kde=True, label="True",
+                      hist_kws={"histtype": "stepfilled"})
+    sns.distplot(generated_samples, bins=200, hist=True, kde=True, label="Generated", ax=ax,
+                 hist_kws={"histtype": "stepfilled"})
+    # ax = sns.barplot(true_pdf, label="True")
+    # sns.barplot(gen_pdf, ax=ax, label="Generated")
+    fig.suptitle("True and Generated Empirical PDF")
+    ax.legend(loc="upper left")
+    ax.set_ylim(0, 1)
+    if save_path is not None:
+        fig.savefig(save_path + "_pdf_g")
+
+    return fig, ax
+
+
+def QQ_scatter(true_samples, generated_samples, save_path=None):
+    fig = sns.plt.figure()
+    ax = sns.regplot(x=sort(true_samples), y=sort(generated_samples), fit_reg=False)
+    # plot = sns.jointplot(x=true_samples, y=generated_samples, kind="reg")
+    ax.set_title("Sorted Scatter Plot of Generated and True Samples")
+    ax.set_xlabel("True Samples")
+    ax.set_ylabel("Generated Samples")
+    ax.set_figure(fig)
+    if save_path is not None:
+        fig.savefig(save_path + "_qqscatter_g-sampled")
+
+    return fig, ax
+
+
+def plot_bookkeeping(bookkeep, metric_name=None, trim_y = False, save_path=None):
+    if metric_name is None:
+        metrics = bookkeep.columns.drop(["D_loss", "G_loss"])
+    else:
+        metrics = [metric_name]
+
+    figaxes = []
+
+    for metric in metrics:
+        fig, ax = sns.plt.subplots(nrows=2, ncols=1, sharex=True)
+        ax_metric, ax_losses = ax[0], ax[1]
+
+        fig.suptitle("Losses and {metric} over steps".format(metric=metric))
+
+        bookkeep[["D_loss", "G_loss"]].plot(ax=ax_losses)
+        bookkeep[metric].plot(ax=ax_metric, colormap="Oranges_r", legend=True)
+        # ax = bookkeep[["D_loss", metric_name]].plot(subplots=True, sharex=True)
+        # bookkeep["G_loss"].plot(ax=ax[0], colormap="Oranges_r", legend=True)
+        if trim_y:
+            ax_losses.set_ylim(bottom=0, top=3)
+        if save_path is not None:
+            fig.savefig(save_path + "_loss_{metric}_over_steps".format(metric=metric))
+
+        figaxes.append((fig, ax))
+    return figaxes
+
+
