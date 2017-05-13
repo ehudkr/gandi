@@ -1,9 +1,12 @@
+import matplotlib
+matplotlib.use("Agg")       # in order to generate plots without displaying them, so it could be managed on the cluster
+import matplotlib.pyplot as plt
 import seaborn as sns
 import statsmodels.api as sm
-from numpy import sort, linspace, cumsum, exp
+# from numpy import sort, linspace, cumsum, exp
 from statsmodels.distributions.empirical_distribution import ECDF
 
-from MetricsG import _calc_mutual_pdf
+# from MetricsG import _calc_mutual_pdf
 
 
 def plot_roc_by_setting(setting_num, data, save_path=None):
@@ -18,7 +21,7 @@ def plot_roc_by_setting(setting_num, data, save_path=None):
 
     for t, cur_data in data.groupby(level="iter"):
         cur_data = cur_data.loc[t]
-        fig = sns.plt.figure()
+        fig = plt.figure()
         fig.suptitle("ROC curve of different anomalies: setting {0}, t {1}".format(setting_num, t))
         ax = fig.add_subplot(111)
         for anomaly, df in cur_data.iterrows():
@@ -30,7 +33,7 @@ def plot_roc_by_setting(setting_num, data, save_path=None):
         ax.set_xlabel("False Positive Rate")
         ax.set_ylabel("True Positive Rate")
         # fig.show()
-        # sns.plt.show(block=True)
+        # plt.show(block=True)
         figaxes.append((fig, ax))
         if save_path is not None:
             fig.savefig(save_path + "_{iteration}_roc".format(iteration=t))
@@ -84,7 +87,7 @@ def plot_anomaly_confidence(res, net_params, save_path=None):
     raise NotImplementedError
     # figaxes = []
     # for i, params in net_params.items():
-    #     fig = sns.plt.figure()
+    #     fig = plt.figure()
     #     ax = res["mean_conf"].loc[(i, "anomaly")].plot(kind="line",
     #                                                    title="Discriminator Mean Confidence: setting {}".format(i),
     #                                                    legend=True,
@@ -94,7 +97,7 @@ def plot_anomaly_confidence(res, net_params, save_path=None):
     #     ax.legend()
     #     ax.set_xlim(0 - 1, res["mean_conf"].columns.max() + 1)
     #     # fig.show()
-    #     # sns.plt.show(block=True)
+    #     # plt.show(block=True)
     #     figaxes.append((fig, ax))
     #     if save_path is not None:
     #         fig.savefig(save_path + "_mean_conf")
@@ -151,7 +154,7 @@ def plot_cdf(true_samples, generated_samples, save_path=None):
     figaxes = []
     for t, samples in generated_samples.iteritems():
 
-        fig = sns.plt.figure()
+        fig = plt.figure()
         ax = sns.distplot(true_samples, hist=False, kde=True, kde_kws={'cumulative': True}, label="True")
         # gen_samples_sort = sort(samples.flatten())
         # gen_samples_summed = cumsum(gen_samples_sort)
@@ -172,7 +175,7 @@ def plot_cdf(true_samples, generated_samples, save_path=None):
 def plot_pdf(true_samples, generated_samples, save_path=None):
     figaxes = []
     for t, samples in generated_samples.iteritems():
-        fig = sns.plt.figure()
+        fig = plt.figure()
         # true_pdf, gen_pdf = _calc_mutual_pdf(true_samples, generated_samples, bin_num=100)
         # ax = Series(true_samples).hist(bins=200, label="True", alpha=0.6, histtype="stepfilled")
         # Series(generated_samples.flatten()).hist(bins=200, label="Generated", ax=ax, alpha=0.6, histtype="stepfilled")
@@ -193,7 +196,7 @@ def plot_pdf(true_samples, generated_samples, save_path=None):
 
 def QQ_scatter(true_samples, generated_samples, save_path=None):
     raise NotImplementedError
-    # fig = sns.plt.figure()
+    # fig = plt.figure()
     # ax = sns.regplot(x=sort(true_samples), y=sort(generated_samples), fit_reg=False)
     # # plot = sns.jointplot(x=true_samples, y=generated_samples, kind="reg")
     # ax.set_title("Sorted Scatter Plot of Generated and True Samples")
@@ -216,7 +219,7 @@ def plot_G_tests(losses_df, G_tracking, metric_names=None, trim_y=False, logx=Fa
     figaxes = []
 
     for metric_name, metric_series in G_df.iteritems():
-        fig, ax = sns.plt.subplots(nrows=2, ncols=1, sharex=True)
+        fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True)
         ax_metric, ax_losses = ax[0], ax[1]
 
         fig.suptitle("Losses and {metric} over steps".format(metric=metric_name))
