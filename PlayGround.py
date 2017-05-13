@@ -247,7 +247,7 @@ if __name__ == "__main__":
     # seed = 93440      # was a good seed I used to see schizophrenia.
     start_time = time.time()
     print("starting time: ", time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime(start_time)))
-    res = main(seed=[753442, 363223])
+    res = main(seed=seed)
     print("time elapsed: ", time.time()-start_time)
     # pickle.dump(res, open(os.path.join(RSLT_DIR,
     #                                    res["trackers"][list(res["trackers"].keys())[0]].LOG_FILENAME + ".pkl"), "wb"))
