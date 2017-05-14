@@ -296,18 +296,22 @@ class Plotter:
             elif plot_type == "roc_setting":
                 # filter only the relevant iterations for plotting:
                 df = self.pg.D_tracking.loc[iteration_checkpoints, ["FPR", "TPR", "AUC"]].dropna()
-                df_pos = df.select(lambda x: x[1][0] >= 0, axis="rows")     # filter in positive anomalies
+                # df_pos = df.select(lambda x: x[1][0] >= 0, axis="rows")     # filter in positive anomalies
+                df_pos = df.loc[[x[1][0] >= 0 for x in df.index.get_values()]]
                 if not df_pos.empty:
                     plot_roc_by_setting(self.setting_num, df_pos, save_path=self.plot_path_prefix + "_pos-anom")
-                df_neg = df.select(lambda x: x[1][0] <= 0, axis="rows")  # filter in negative anomalies
+                # df_neg = df.select(lambda x: x[1][0] <= 0, axis="rows")  # filter in negative anomalies
+                df_neg = df.loc[[x[1][0] <= 0 for x in df.index.get_values()]]
                 if not df_pos.empty:
                     plot_roc_by_setting(self.setting_num, df_neg, save_path=self.plot_path_prefix + "_neg-anom")
             elif plot_type == "auc_time":
                 auc_series = self.pg.D_tracking["AUC"]
-                auc_series_pos = auc_series.select(lambda x: x[1][0] >= 0)
+                # auc_series_pos = auc_series.select(lambda x: x[1][0] >= 0)
+                auc_series_pos = auc_series[[x[1][0] >= 0 for x in auc_series.index.get_values()]]
                 if not auc_series_pos.empty:
                     plot_auc_over_time(auc_series_pos, save_path=self.plot_path_prefix + "_pos-anom", logx=logx)
-                auc_series_neg = auc_series.select(lambda x: x[1][0] <= 0)
+                # auc_series_neg = auc_series.select(lambda x: x[1][0] <= 0)
+                auc_series_neg = auc_series[[x[1][0] <= 0 for x in auc_series.index.get_values()]]
                 if not auc_series_neg.empty:
                     plot_auc_over_time(auc_series_neg, save_path=self.plot_path_prefix + "_neg-anom", logx=logx)
             elif plot_type == "G_tests":
