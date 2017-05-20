@@ -3,6 +3,7 @@ matplotlib.use("Agg")       # in order to generate plots without displaying them
 import matplotlib.pyplot as plt
 import seaborn as sns
 import statsmodels.api as sm
+import os
 # from numpy import sort, linspace, cumsum, exp
 from statsmodels.distributions.empirical_distribution import ECDF
 
@@ -229,7 +230,10 @@ def plot_G_tests(losses_df, G_tracking, metric_names=None, trim_y=False, logx=Fa
         if trim_y:
             ax_losses.set_ylim(bottom=0, top=3)
         if save_path is not None:
-            fig.savefig(save_path + "_loss_{metric}_over_steps".format(metric=metric_name))
+            if logx:
+                fig.savefig(save_path + "_loss_{metric}_over_steps_logx".format(metric=metric_name))
+            else:
+                fig.savefig(save_path + "_loss_{metric}_over_steps".format(metric=metric_name))
 
         figaxes.append((fig, ax))
     return figaxes
@@ -262,12 +266,14 @@ class Plotter:
                   "auc_time": plot_auc_over_time,
                   "G_tests": plot_G_tests}
 
-    def __init__(self, setting_num, plot_path_prefix, progress_tracker, true_distribution=None, anomaly_distribution=None):
+    def __init__(self, setting_num, plot_dir, progress_tracker, true_distribution=None, anomaly_distribution=None):
         self.setting_num = setting_num
-        self.plot_path_prefix = plot_path_prefix
         self.pg = progress_tracker
         self.true_distribution = true_distribution
         self.anomaly_distribution = anomaly_distribution
+        plot_dir_name = os.path.join(plot_dir, self.pg.gan_signature)
+        os.mkdir(plot_dir_name)
+        self.plot_path_prefix = os.path.join(plot_dir_name, self.pg.gan_signature)
 
     def plot(self, plot_types, iteration_checkpoints, trim_y=False, logx=False):
         """

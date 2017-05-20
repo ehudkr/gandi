@@ -18,7 +18,7 @@ class ProgressTracker:
                           "CDF_l1": MetricsG.calc_l1_cdf,
                           "Anderson": MetricsG.calc_anderson}
 
-    def __init__(self, gan_id, G_tests_names=None, D_tester=None,
+    def __init__(self, gan_id, train_random_seed=None, G_tests_names=None, D_tester=None,
                  n_loss_tracking=None, n_G_tracking=None, n_D_tracking=None, n_logger=None, n_tensorboard=None,
                  n_checkpoint=None,
                  G_test_samples=None, test_true_samples=None, reuse_test_samples=True,
@@ -27,6 +27,7 @@ class ProgressTracker:
         initializing the tracker object that will accompany the training process
         :param gan_id: The GAN associated with this tracker
         :type gan_id: int or list
+        :param train_random_seed: the random seed that will generate the results
         :param G_tests_names: what metrics to test on G's output
         :type G_tests_names: list or set or None
         :param D_tester: # what tests to apply on D (including as AD)
@@ -48,6 +49,7 @@ class ProgressTracker:
         :type tensorboard_dir_path: str or None
         """
         self.gan_id = gan_id
+        self.gan_signature = self.create_gan_id_signature(gan_id, train_random_seed)
 
         self.G_tests_names = G_tests_names if not None else []
         self.D_tests_names = D_tester if not None else []
@@ -75,13 +77,14 @@ class ProgressTracker:
         self.n_logger = n_logger
         # self.LOG_FILENAME = log_dir_path
 
-        self.TENSORBOARD_DIR = tensorboard_dir_path.format(gan_id)    # path to use summarizing to tensorboard
+        self.TENSORBOARD_DIR = os.path.join(tensorboard_dir_path, self.gan_signature)   # path to use summarizing to
+        #                                                                               # tensorboard
         self.n_tensorboard = n_tensorboard           # tensorboard summarize every n steps
         self.tensorboard_writer = None              # a writer object of tensorboard - will be initialized in future
         # self.summary_ops = None                      # tensorboard all the summaries in D and G - will be init in fut
         self.summary_ops = None  # tensorboard all the summaries in D and G - will be init in fut
 
-        self.CHKPT_DIR = checkpoint_dir_path.format(gan_id)
+        self.CHKPT_DIR = os.path.join(checkpoint_dir_path, self.gan_signature)
         self.tf_saver = None                        # a saver object of tensorflow - will be initialized in future
         self.n_tf_saver = n_checkpoint
 
@@ -101,15 +104,20 @@ class ProgressTracker:
         # probably given None, so do not track:
         return False
 
+    @staticmethod
+    def create_gan_id_signature(gan_id, seed):
+        localtime = time.localtime(time.time())
+        localtime = "{Y}-{M:02}-{D:02}_{h:02}-{m:02}-{s:02}".format(Y=localtime.tm_year, M=localtime.tm_mon,
+                                                                    D=localtime.tm_mday, h=localtime.tm_hour,
+                                                                    m=localtime.tm_min, s=localtime.tm_sec)
+        seed_str = seed if seed is type(int) else "-".join([str(x) for x in seed])
+        return "_".join(["GAN", localtime, seed_str, str(gan_id)])
+
     # ############## ## #
     # ## Manual Log: ## #
     # ############## ## #
     def init_logger(self, log_dir=None):
-        localtime = time.localtime(time.time())
-        localtime = "{Y}-{M:02}-{D:02}_{h:02}-{m:02}-{s:02}".format(Y=localtime.tm_year, M=localtime.tm_mon,
-                                                                    D=localtime.tm_mday, h=localtime.tm_hour,
-                                                                    m=localtime.tm_min,  s=localtime.tm_sec)
-        logger_file_name = "logGan" + "_" + localtime
+        logger_file_name = "log" + self.gan_signature
         logger = logging.getLogger(name=logger_file_name)
         logger.addHandler(logging.FileHandler(os.path.join(log_dir, logger_file_name + ".log")))
         return logger, logger_file_name
@@ -143,7 +151,8 @@ class ProgressTracker:
     def init_tensorboard_writer(self, session):
         if self.n_tensorboard is None:
             return
-        self.tensorboard_writer = tf.summary.FileWriter(os.path.join(self.TENSORBOARD_DIR, "train"), session.graph)
+        # self.tensorboard_writer = tf.summary.FileWriter(os.path.join(self.TENSORBOARD_DIR, "train"), session.graph)
+        self.tensorboard_writer = tf.summary.FileWriter(self.TENSORBOARD_DIR, session.graph)
 
     def should_tensorboard(self, t):
         return self._should_track(t, self.n_tensorboard) and self.tensorboard_writer is not None
@@ -157,8 +166,8 @@ class ProgressTracker:
     # ## Track Model Checkpoints Progress: ## #
     # ####################################### #
     def init_tf_saver(self, gan=None):
-        self.tf_saver = tf.train.Saver(var_list=None,            # maybe explicitly save: [gan.D.params, gan.G.params]
-                                       name="GAN_{gan_id}_Saver".format(gan_id=self.gan_id))
+        self.tf_saver = tf.train.Saver(var_list=None,  # maybe explicitly save: [gan.D.params, gan.G.params]
+                                       name=self.gan_signature)
 
     def should_checkpoint(self, t):
         return self._should_track(t, self.n_tf_saver)
@@ -167,7 +176,7 @@ class ProgressTracker:
         if not self.should_checkpoint(t):
             return
         self.tf_saver.save(sess=gan.session, save_path=self.CHKPT_DIR + ".ckpt",
-                           global_step=global_step, latest_filename="GAN_{ID}_checkpoint".format(ID=self.gan_id))
+                           global_step=global_step, latest_filename=self.gan_signature)
 
     # ########### ## #
     # ## Track G: ## #

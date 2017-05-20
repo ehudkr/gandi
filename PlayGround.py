@@ -3,13 +3,11 @@
 # Global imports:
 import pandas as pd
 import tensorflow as tf
-import logging
 import os
 import time
 import pickle
 # import dill
-from copy import deepcopy
-# import random
+# from copy import deepcopy
 
 
 # Local imports:
@@ -24,9 +22,9 @@ from MetricsD import MetricsD
 
 np = pd.np
 LOG_DIR = os.path.join("log_dir", "logs")
-TENSBOARD_DIR = os.path.join("log_dir", "tensorboard", "GAN_{}")
+TENSBOARD_DIR = os.path.join("log_dir", "tensorboard")
 PLOT_DIR = os.path.join("log_dir", "plots")
-CHKPT_DIR = os.path.join("log_dir", "checkpoints", "GAN_{}")
+CHKPT_DIR = os.path.join("log_dir", "checkpoints")
 RSLT_DIR = os.path.join("log_dir", "results")
 
 # TODO: implement simple baseline anomaly detection method
@@ -100,10 +98,10 @@ def main(seed=None):
                     # 10: {"d_arch_num": 1, "g_arch_num": 2, "training_steps": 100001, "D:G_training_steps_ratio": 1,
                     #      "minibatch_size": 12, "D_pre_train": False,
                     #      "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
-		    10: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": 160001, "D:G_training_steps_ratio": 3,
+                    10: {"d_arch_num": 1, "g_arch_num": 2, "training_steps": 160001, "D:G_training_steps_ratio": 3,
                          "minibatch_size": 12, "D_pre_train": False,
                          "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
-                    # 100: {"d_arch_num": 1, "g_arch_num": 1, "training_steps": 4, "D:G_training_steps_ratio": 1,
+                    # 100: {"d_arch_num": 1, "g_arch_num": 1, "training_steps": 1, "D:G_training_steps_ratio": 1,
                     #       "minibatch_size": 12, "D_pre_train": False,
                     #       "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
                     # 101: {"d_arch_num": 1, "g_arch_num": 2, "training_steps": 30, "D:G_training_steps_ratio": 1,
@@ -115,7 +113,7 @@ def main(seed=None):
                  (-0.1, 1), (-0.5, 1), (-1, 1), (-2, 1), (-3, 1), (-4, 1), (-5, 1), (-10, 1)]
     plot_checkpoints = [0, 50, 100, 150, 200, 500, 750, 1000, 1500, 2000, 3500, 5000, 7500,
                         10000, 17500, 25000, 37500, 50000, 62500, 75000, 87500, 100000,
-			120000, 140000, 16000]
+                        120000, 140000, 16000]
 
     # ### START Playing ### #
     samples_distribution = Distributions.Distribution(dist_type="gaussian", kwargs={"mu": true_mu, "std_dev": true_sigma})
@@ -144,7 +142,7 @@ def main(seed=None):
                            anomaly_base_distribution=Distributions.GaussianDistribution,
                            true_loc=true_mu, true_scale=true_sigma,
                            G_n_test_samples=test_size)
-        pg = Tracker.ProgressTracker(gan_id=p, G_tests_names=G_tests_names, D_tester=metricD,
+        pg = Tracker.ProgressTracker(gan_id=p, train_random_seed=seed, G_tests_names=G_tests_names, D_tester=metricD,
                                      n_loss_tracking=10,
                                      n_G_tracking=plot_checkpoints + [i for i in range(0, training_steps, 500)],
                                      n_D_tracking=plot_checkpoints,
@@ -187,10 +185,7 @@ def main(seed=None):
             #       take train size and keep track of what it generates in some dataframe.
 
             # ### PLOT RESULTS ### #
-            plot_dir_name = os.path.join(PLOT_DIR, pg.LOG_FILENAME + "_{}_{}".format(p, seed))
-            os.mkdir(plot_dir_name)
-            plot_path_prefix = os.path.join(plot_dir_name, pg.LOG_FILENAME + "_{}_{}".format(p, seed))
-            plotter = Plots.Plotter(setting_num=p, plot_path_prefix=plot_path_prefix, progress_tracker=pg,
+            plotter = Plots.Plotter(setting_num=p, plot_dir=PLOT_DIR, progress_tracker=pg,
                                     true_distribution=samples_distribution, anomaly_distribution=None)
             plotter.plot(plot_types=["cdf", "pdf", "qqplot", "roc_setting", "G_tests", "auc_time"],
                          iteration_checkpoints=plot_checkpoints, logx=False)
@@ -208,7 +203,7 @@ def main(seed=None):
     # results = {"trackers": trackers, "metricsD": metricsD, "GANs": gans}
     print("Ending time: ", time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime(time.time())))
     pickle.dump(trackers,
-                open(os.path.join(RSLT_DIR, pg.LOG_FILENAME + ".pkl"), "wb"),
+                open(os.path.join(RSLT_DIR, pg.gan_signature[:pg.gan_signature.rfind("_")] + ".pkl"), "wb"),
                 protocol=pickle.HIGHEST_PROTOCOL)
 
     # ### General Scheme ### #
@@ -240,10 +235,10 @@ def initialize_GAN(D_loss_type, D_pre_train, G_loss_type, d_arch_num, g_arch_num
 
 
 if __name__ == "__main__":
-    try:
-        tf.gfile.DeleteRecursively(os.path.split(TENSBOARD_DIR)[0])
-    except Exception as e:
-        print(e)
+    # try:
+    #     tf.gfile.DeleteRecursively(os.path.split(TENSBOARD_DIR)[0])
+    # except Exception as e:
+    #     print(e)
     # seed = np.random.randint(low=0, high=np.uint32(-1), size=2, dtype=np.uint32)
     seed = np.random.randint(low=0, high=999999, size=2, dtype=np.uint32)
     print(seed)
