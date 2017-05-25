@@ -22,7 +22,8 @@ class ProgressTracker:
                  n_loss_tracking=None, n_G_tracking=None, n_D_tracking=None, n_logger=None, n_tensorboard=None,
                  n_checkpoint=None,
                  G_test_samples=None, test_true_samples=None, reuse_test_samples=True,
-                 log_dir_path=None, tensorboard_dir_path=None, checkpoint_dir_path=None):
+                 log_dir_path=None, tensorboard_dir_path=None, checkpoint_dir_path=None,
+                 run_signature=None):
         """
         initializing the tracker object that will accompany the training process
         :param gan_id: The GAN associated with this tracker
@@ -49,7 +50,10 @@ class ProgressTracker:
         :type tensorboard_dir_path: str or None
         """
         self.gan_id = gan_id
-        self.gan_signature = self.create_gan_id_signature(gan_id, train_random_seed)
+        if run_signature is None:
+            self.gan_signature = self.create_gan_id_signature(gan_id, train_random_seed)
+        else:
+            self.gan_signature = run_signature.format(gan_id)
 
         self.G_tests_names = G_tests_names if not None else []
         self.D_tests_names = D_tester if not None else []
@@ -166,11 +170,14 @@ class ProgressTracker:
     # ## Track Model Checkpoints Progress: ## #
     # ####################################### #
     def init_tf_saver(self, gan=None):
-        self.tf_saver = tf.train.Saver(var_list=None,  # maybe explicitly save: [gan.D.params, gan.G.params]
-                                       name=self.gan_signature)
+        if self.n_tf_saver is None:
+            self.tf_saver = None
+        else:
+            self.tf_saver = tf.train.Saver(var_list=None,  # maybe explicitly save: [gan.D.params, gan.G.params]
+                                           name=self.gan_signature)
 
     def should_checkpoint(self, t):
-        return self._should_track(t, self.n_tf_saver)
+        return self._should_track(t, self.n_tf_saver) and self.tf_saver is not None
 
     def create_tf_checkpoint(self, t, global_step, gan):
         if not self.should_checkpoint(t):

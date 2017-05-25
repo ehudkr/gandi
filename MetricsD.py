@@ -20,7 +20,7 @@ class MetricsD:
 
         # test anomaly samples:
         for i, anomaly in enumerate(self.anomalist):
-            res.append({"iter": t})
+            res.append({"iter": t, "anomaly": anomaly})
             # sample anomalies and get D's output on them:
             anomaly_distribution = self.anomaly_base_distribution(mu=self.true_loc+anomaly[0], std_dev=anomaly[1])
             anom_samples = anomaly_distribution.sample(test_size)
@@ -36,7 +36,7 @@ class MetricsD:
                     fpr, tpr, _ = metrics.roc_curve(y_true=[1] * test_size + [0] * test_size,
                                                     y_score=np_concat((data_pred_prob, anom_pred_prob), axis=0))
                     auc = metrics.auc(fpr, tpr)
-                    res[i].update({"anomaly": anomaly, "FPR": fpr, "TPR": tpr, "AUC": auc})
+                    res[i].update({"FPR": fpr, "TPR": tpr, "AUC": auc})
                 elif test_name == "mean_conf":
                     res[i].update({"mean_conf": anom_pred_prob.mean()})
         return res

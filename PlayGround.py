@@ -41,14 +41,23 @@ def classify_probabilities(prediction, cutoff=0.5):
     return pred
 
 
+def create_run_signature(seed):
+    localtime = time.localtime(time.time())
+    localtime = "{Y}-{M:02}-{D:02}_{h:02}-{m:02}-{s:02}".format(Y=localtime.tm_year, M=localtime.tm_mon,
+                                                                D=localtime.tm_mday, h=localtime.tm_hour,
+                                                                m=localtime.tm_min, s=localtime.tm_sec)
+    seed_str = seed if seed is type(int) else "-".join([str(x) for x in seed])
+    return "_".join(["GAN", localtime, seed_str, "{}"])     # {} as place holder for gan_id to create gan_signature
+
+
 # TODO: how to save the models + saving the trained tensforflow networks? save session?
 
 
 def main(seed=None):
     # network variables:
-    G_input_dim = 1
-    G_output_dim = 1
-    D_input_dim = G_output_dim
+    G_input_dim = RunParams.G_input_dim
+    G_output_dim = RunParams.G_output_dim
+    D_input_dim = RunParams.D_input_dim
     # distribution variables:
     true_mu, true_sigma = RunParams.true_mu, RunParams.true_sigma
     # performance measurement variables:
@@ -56,6 +65,8 @@ def main(seed=None):
     # anomalist is in (mu, std_dev) format
     anomalist = RunParams.anomalist
     plot_checkpoints = RunParams.plot_checkpoints
+
+    run_signature = create_run_signature(seed)
 
     # ### START Playing ### #
     samples_distribution = Distributions.Distribution(dist_type="gaussian", kwargs={"mu": true_mu, "std_dev": true_sigma})
@@ -76,19 +87,23 @@ def main(seed=None):
         D_loss_type = params.get("D_loss_type")
         test_size = minibatch_size * 500
 
-        G_tests_names = ["KL", "KS_s", "KS_p", "CDF_l1", "Anderson"]
-        D_tests_names = ["AUC"]
+        G_tests_names = RunParams.G_tests_names
+        D_tests_names = RunParams.D_tests_names
+
+        # TODO: "cross validation": add loop for k times. save results. save models too
+        #       maybe just cv the anomaly test batch to get mean_error and std.
 
         # initialize a ProgressTracker object that will accompany the GAN training:
         metricD = MetricsD(anomalist=anomalist, metrics_names=D_tests_names,
                            anomaly_base_distribution=Distributions.GaussianDistribution,
                            true_loc=true_mu, true_scale=true_sigma,
                            G_n_test_samples=test_size)
-        pg = Tracker.ProgressTracker(gan_id=p, train_random_seed=seed, G_tests_names=G_tests_names, D_tester=metricD,
+        pg = Tracker.ProgressTracker(gan_id=p, train_random_seed=seed, run_signature=run_signature,
+                                     G_tests_names=G_tests_names, D_tester=metricD,
                                      n_loss_tracking=10,
                                      n_G_tracking=plot_checkpoints + [i for i in range(0, training_steps, 500)],
                                      n_D_tracking=plot_checkpoints,
-                                     n_logger=10000, n_tensorboard=10000, n_checkpoint=50000,
+                                     n_logger=10000, n_tensorboard=10000, n_checkpoint=None,
                                      G_test_samples=noise_distribution.sample(test_size).reshape(-1, G_input_dim),
                                      test_true_samples=samples_distribution.sample(test_size).reshape(-1, D_input_dim),
                                      reuse_test_samples=False,
@@ -107,9 +122,6 @@ def main(seed=None):
             D, D_pre, G, global_step = initialize_GAN(D_loss_type, D_pre_train, G_loss_type, d_arch_num, g_arch_num,
                                                       G_input_dim, G_output_dim, D_input_dim,
                                                       minibatch_size, p, pg)
-
-        # TODO: cross validation add loop for k times. update the performance dict-table as well. save those models too?
-        #       maybe just cv the anomaly test batch to get mean_error and std.
 
             gan = GAN(samples_distribution=samples_distribution, generator_distribution=noise_distribution,
                       discriminator_nn=D, generator_nn=G, D_pre=D_pre,
@@ -190,7 +202,7 @@ if __name__ == "__main__":
     # seed = 93440      # was a good seed I used to see schizophrenia.
     start_time = time.time()
     print("starting time: ", time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime(start_time)))
-    res = main(seed=seed)
+    res = main(seed=[753442, 363223])
     print("time elapsed: ", time.time()-start_time)
     # pickle.dump(res, open(os.path.join(RSLT_DIR,
     #                                    res["trackers"][list(res["trackers"].keys())[0]].LOG_FILENAME + ".pkl"), "wb"))

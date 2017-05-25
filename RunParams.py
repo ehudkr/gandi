@@ -69,7 +69,7 @@ train_params = {
                 11: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": 160001, "D:G_training_steps_ratio": 6,
                      "minibatch_size": 12, "D_pre_train": False,
                      "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
-                # 100: {"d_arch_num": 1, "g_arch_num": 1, "training_steps": 1, "D:G_training_steps_ratio": 1,
+                # 100: {"d_arch_num": 1, "g_arch_num": 1, "training_steps": 10001, "D:G_training_steps_ratio": 1,
                 #       "minibatch_size": 12, "D_pre_train": False,
                 #       "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
                 # 101: {"d_arch_num": 1, "g_arch_num": 2, "training_steps": 30, "D:G_training_steps_ratio": 1,
@@ -79,6 +79,16 @@ train_params = {
 # anomalist is in (mu, std_dev) format
 anomalist = [(0.1, 1), (0.5, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (10, 1),
              (-0.1, 1), (-0.5, 1), (-1, 1), (-2, 1), (-3, 1), (-4, 1), (-5, 1), (-10, 1)]
-plot_checkpoints = [0, 50, 100, 150, 200, 500, 750, 1000, 1500, 2000, 3500, 5000, 7500,
-                    10000, 17500, 25000, 37500, 50000, 62500, 75000, 87500, 100000,
-                    120000, 140000, 16000]
+# anomalist = [(0.1, 1),  (1, 1),  (5, 1)
+#              ]
+plot_checkpoints = [0, 50, 100, 150, 200, 500, 750, 1000, 1500, 2000, 3500, 5000, 7500] \
+                   + list(range(10000, 100000, 5000)) \
+                   + list(range(100000, 160001, 10000))
+
+# plot_checkpoints = [10000]
+
+G_tests_names = ["KL", "KS_s", "KS_p", "CDF_l1", "Anderson"]
+D_tests_names = ["AUC"]
+# G_tests_names = ["KL"]
+# D_tests_names = ["AUC"]
+

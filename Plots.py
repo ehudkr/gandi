@@ -308,7 +308,7 @@ class Plotter:
                     plot_roc_by_setting(self.setting_num, df_pos, save_path=self.plot_path_prefix + "_pos-anom")
                 # df_neg = df.select(lambda x: x[1][0] <= 0, axis="rows")  # filter in negative anomalies
                 df_neg = df.loc[[x[1][0] <= 0 for x in df.index.get_values()]]
-                if not df_pos.empty:
+                if not df_neg.empty:
                     plot_roc_by_setting(self.setting_num, df_neg, save_path=self.plot_path_prefix + "_neg-anom")
             elif plot_type == "auc_time":
                 auc_series = self.pg.D_tracking["AUC"]
