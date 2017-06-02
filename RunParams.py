@@ -11,6 +11,7 @@ D_input_dim = G_output_dim
 # distribution variables:
 true_mu, true_sigma = 4, 1
 # performance measurement variables:
+training_steps = 200001
 train_params = {
                 # 0: {"d_arch_num": 1, "g_arch_num": 1, "training_steps": 5000, "D:G_training_steps_ratio": 1,
                 #     "minibatch_size": 12, "D_pre_train": False,
@@ -54,19 +55,19 @@ train_params = {
                 # 2: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": 150001, "D:G_training_steps_ratio": 1,
                 #     "minibatch_size": 12, "D_pre_train": False,
                 #     "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
-                9: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": 160001, "D:G_training_steps_ratio": 1,
+                9: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": training_steps, "D:G_training_steps_ratio": 1,
                     "minibatch_size": 12, "D_pre_train": False,
                     "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
                 # 10: {"d_arch_num": 1, "g_arch_num": 2, "training_steps": 100001, "D:G_training_steps_ratio": 1,
                 #      "minibatch_size": 12, "D_pre_train": False,
                 #      "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
-                10: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": 160001, "D:G_training_steps_ratio": 3,
+                10: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": training_steps, "D:G_training_steps_ratio": 3,
                      "minibatch_size": 12, "D_pre_train": False,
                      "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
-                12: {"d_arch_num": 1, "g_arch_num": 2, "training_steps": 160001, "D:G_training_steps_ratio": 1,
+                12: {"d_arch_num": 1, "g_arch_num": 2, "training_steps": training_steps, "D:G_training_steps_ratio": 1,
                      "minibatch_size": 12, "D_pre_train": False,
                      "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
-                11: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": 160001, "D:G_training_steps_ratio": 6,
+                11: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": training_steps, "D:G_training_steps_ratio": 6,
                      "minibatch_size": 12, "D_pre_train": False,
                      "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
                 # 100: {"d_arch_num": 1, "g_arch_num": 1, "training_steps": 10001, "D:G_training_steps_ratio": 1,
@@ -83,7 +84,9 @@ anomalist = [(0.1, 1), (0.5, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (10, 1)
 #              ]
 plot_checkpoints = [0, 50, 100, 150, 200, 500, 750, 1000, 1500, 2000, 3500, 5000, 7500] \
                    + list(range(10000, 100000, 5000)) \
-                   + list(range(100000, 160001, 10000))
+                   + list(range(100000, training_steps, 10000))
+G_test_checkpoints = [i for i in range(0, training_steps, 1000)]
+D_test_checkpoints = [i for i in range(0, training_steps, 1000)]
 
 # plot_checkpoints = [10000]
 

@@ -1,7 +1,8 @@
 import matplotlib
-matplotlib.use("Agg")       # in order to generate plots without displaying them, so it could be managed on the cluster
+# matplotlib.use("Agg")       # in order to generate plots without displaying them, so it could be managed on the cluster
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 import statsmodels.api as sm
 import os
 # from numpy import sort, linspace, cumsum, exp
@@ -257,6 +258,34 @@ def plot_auc_over_time(auc_series, logx=False, save_path=None):
     return fig, ax
 
 
+def plot_auc_anomaly_fit_heatmap(D, G, gan_id, fit_test="KL", vmin=0, cmap="GnBu", save_path=None):
+    mutual_iter = D.index.get_level_values("iter").unique().intersection(G.index)
+
+    G_test = G.loc[mutual_iter, fit_test]
+    D_auc = D.sort_index(axis=0).loc[pd.IndexSlice[mutual_iter, :], "AUC"]
+    D_auc = D_auc.unstack()     # create a table of iteration-over-anomaly instead of multi-index series.
+
+    D_auc.reindex_axis(sorted(D_auc.columns, key=lambda x: x[0]), axis=1)   # sort columns by anomaly (mu)
+
+    G_test = G_test.sort_values()
+    D_auc = D_auc.reindex(G_test.index)       # sort the AUC values (rows) by the fit
+
+    D_auc = D_auc.set_index(G_test.round(5))                     # set the fit values to be the df indices
+
+    fig = plt.figure(figsize=(16, 9), dpi=100)
+    ax = fig.add_subplot(111)
+
+    ax = sns.heatmap(D_auc, vmin=vmin, vmax=1, cmap=cmap, ax=ax)
+
+    ax.set_title("AUC over anomaly and {test}. Setting: {setting}".format(test=fit_test, setting=gan_id))
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
+    # fig = ax.get_figure()
+    if save_path is not None:
+        fig.savefig(save_path + "_auc_anomaly_fit_heatmap_{test}".format(test=fit_test))
+
+    return fig, ax
+
+
 class Plotter:
     plot_funcs = {"cdf": plot_cdf,
                   "pdf": plot_pdf,
@@ -323,4 +352,31 @@ class Plotter:
             elif plot_type == "G_tests":
                 plot_G_tests(self.pg.loss_tracking, self.pg.G_tracking, metric_names=None, trim_y=trim_y, logx=logx,
                              save_path=self.plot_path_prefix)
+            elif plot_type == "auc_fit_anomaly_heatmap":
+                for fit_test in self.pg.G_tracking.columns.drop("samples"):     # do so for every fit test done on G
+                    plot_auc_anomaly_fit_heatmap(self.pg.D_tracking, self.pg.G_tracking, self.pg.gan_id,
+                                                 fit_test=fit_test, save_path=self.plot_path_prefix)
+
+
+#
+
+#
+
+# ######################### #
+# ## Plots for after run ## #
+# ######################### #
+
+def aplot_auc_anomaly_fit_heatmap(results, fit_test="KL", vmin=0, cmap="GnBu", save_path=None):
+    figaxes = {}
+    for p, tracks in results.items():
+        test_figaxes = {}
+        D = tracks.get("D")
+        G = tracks.get("G")
+        for test_fit in G.columns.drop("samples"):
+            fig, ax = plot_auc_anomaly_fit_heatmap(D, G, gan_id=p, fit_test=test_fit,
+                                                   vmin=vmin, cmap=cmap, save_path=save_path+"_"+str(p))
+            test_figaxes[test_fit] = (fig, ax)
+
+        figaxes[p] = test_figaxes
+    return figaxes
 

@@ -65,6 +65,8 @@ def main(seed=None):
     # anomalist is in (mu, std_dev) format
     anomalist = RunParams.anomalist
     plot_checkpoints = RunParams.plot_checkpoints
+    G_test_checkpoints = RunParams.G_test_checkpoints
+    D_test_checkpoints = RunParams.D_test_checkpoints
 
     run_signature = create_run_signature(seed)
 
@@ -101,8 +103,8 @@ def main(seed=None):
         pg = Tracker.ProgressTracker(gan_id=p, train_random_seed=seed, run_signature=run_signature,
                                      G_tests_names=G_tests_names, D_tester=metricD,
                                      n_loss_tracking=10,
-                                     n_G_tracking=plot_checkpoints + [i for i in range(0, training_steps, 500)],
-                                     n_D_tracking=plot_checkpoints,
+                                     n_G_tracking=plot_checkpoints + G_test_checkpoints,
+                                     n_D_tracking=plot_checkpoints + D_test_checkpoints,
                                      n_logger=10000, n_tensorboard=10000, n_checkpoint=None,
                                      G_test_samples=noise_distribution.sample(test_size).reshape(-1, G_input_dim),
                                      test_true_samples=samples_distribution.sample(test_size).reshape(-1, D_input_dim),
@@ -140,10 +142,14 @@ def main(seed=None):
             #       take train size and keep track of what it generates in some dataframe.
 
             # ### PLOT RESULTS ### #
-            plotter = Plots.Plotter(setting_num=p, plot_dir=PLOT_DIR, progress_tracker=pg,
-                                    true_distribution=samples_distribution, anomaly_distribution=None)
-            plotter.plot(plot_types=["cdf", "pdf", "qqplot", "roc_setting", "G_tests", "auc_time"],
-                         iteration_checkpoints=plot_checkpoints, logx=False)
+            try:
+                plotter = Plots.Plotter(setting_num=p, plot_dir=PLOT_DIR, progress_tracker=pg,
+                                        true_distribution=samples_distribution, anomaly_distribution=None)
+                plotter.plot(plot_types=["cdf", "pdf", "qqplot", "roc_setting", "G_tests", "auc_time",
+                                         "auc_fit_anomaly_heatmap"],
+                             iteration_checkpoints=plot_checkpoints, logx=False)
+            except Exception as e:
+                print("Exception during plotting:", e)
 
             # TODO: save gan object, tf session, graph, object internal and everything.   (and restore)
             gans[p] = gan
