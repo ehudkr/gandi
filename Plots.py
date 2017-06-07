@@ -1,5 +1,5 @@
 import matplotlib
-# matplotlib.use("Agg")       # in order to generate plots without displaying them, so it could be managed on the cluster
+matplotlib.use("Agg")       # in order to generate plots without displaying them, so it could be managed on the cluster
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -271,6 +271,7 @@ def plot_auc_anomaly_fit_heatmap(D, G, gan_id, fit_test="KL", vmin=0, cmap="GnBu
     D_auc = D_auc.reindex(G_test.index)       # sort the AUC values (rows) by the fit
 
     D_auc = D_auc.set_index(G_test.round(5))                     # set the fit values to be the df indices
+    # D_auc = D_auc.set_index([list(zip(G_test.index, G_test.round(5)))])   # add the iteration next to the value
 
     fig = plt.figure(figsize=(16, 9), dpi=100)
     ax = fig.add_subplot(111)

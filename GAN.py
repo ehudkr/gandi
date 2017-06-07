@@ -124,7 +124,7 @@ class GAN:
             self.pg.track_log(t, loss_d, loss_g, summ_ops, self)
 
             # update training settings according to the current GAN
-            self.G_freeze_training = self.should_freeze_G()
+            self.G_freeze_training = self.should_freeze_G(t)
 
             # animate:
 
@@ -144,7 +144,7 @@ class GAN:
             noise_samples = samples
         return self.G.predict(seed_samples=noise_samples, session=session or self.session)
 
-    def should_freeze_G(self):
+    def should_freeze_G(self, t):
         # do some calculation using self.pg
         return False
 

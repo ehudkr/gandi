@@ -132,8 +132,10 @@ class ProgressTracker:
     def log_training(self, t, D_loss, G_loss, gan):
         if not self.should_log(t):
             return
-        self.logger.error("GAN {ID} training\t{t:06d}:\t{D_loss}\t{G_loss}".format(ID=gan.id_num, t=t,
-                                                                                   D_loss=D_loss, G_loss=G_loss))
+        self.logger.error("GAN {ID} training\t{t:06d}:\t{D_loss}\t{G_loss}\t{time}".format(ID=gan.id_num, t=t,
+                                                                                           D_loss=D_loss,
+                                                                                           G_loss=G_loss,
+                                                                                           time=time.asctime()))
 
     # ################ ## #
     # ## Track Losses: ## #

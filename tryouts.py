@@ -80,8 +80,8 @@
 
 import Plots
 import pickle
-results = pickle.load(open(r"C:\Workspaces\PyCharm workspace\project-thesis\log_dir\results\GAN_2017-05-26_17-07-34_20487-734467.pkl", "rb"))
-Plots.aplot_auc_anomaly_fit_heatmap(results, fit_test="KL", save_path=r"C:\Workspaces\PyCharm workspace\project-thesis\log_dir\a")
+results = pickle.load(open(r"C:\Workspaces\PyCharm workspace\project-thesis\log_dir\results\GAN_2017-05-26_17-11-44_738309-603538.pkl", "rb"))
+Plots.aplot_auc_anomaly_fit_heatmap(results, fit_test="KL", save_path=r"C:\Workspaces\PyCharm workspace\project-thesis\log_dir\GAN_2017-05-26_17-11-44_738309-603538")
 
 
 
