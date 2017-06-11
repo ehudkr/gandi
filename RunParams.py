@@ -58,9 +58,9 @@ train_params = {
                 9: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": training_steps, "D:G_training_steps_ratio": 1,
                     "minibatch_size": 12, "D_pre_train": False,
                     "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
-                # 10: {"d_arch_num": 1, "g_arch_num": 2, "training_steps": 100001, "D:G_training_steps_ratio": 1,
-                #      "minibatch_size": 12, "D_pre_train": False,
-                #      "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
+                # #10: {"d_arch_num": 1, "g_arch_num": 2, "training_steps": 100001, "D:G_training_steps_ratio": 1,
+                # #     "minibatch_size": 12, "D_pre_train": False,
+                # #     "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
                 10: {"d_arch_num": 1, "g_arch_num": 3, "training_steps": training_steps, "D:G_training_steps_ratio": 3,
                      "minibatch_size": 12, "D_pre_train": False,
                      "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
@@ -73,14 +73,14 @@ train_params = {
                 # 100: {"d_arch_num": 1, "g_arch_num": 1, "training_steps": 10001, "D:G_training_steps_ratio": 1,
                 #       "minibatch_size": 12, "D_pre_train": False,
                 #       "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
-                # 101: {"d_arch_num": 1, "g_arch_num": 2, "training_steps": 30, "D:G_training_steps_ratio": 1,
+                # 101: {"d_arch_num": 1, "g_arch_num": 1, "training_steps": 1, "D:G_training_steps_ratio": 1,
                 #       "minibatch_size": 12, "D_pre_train": False,
                 #       "G_loss_type": "cross_entropy", "D_loss_type": "cross_entropy"},
                 }
 # anomalist is in (mu, std_dev) format
 anomalist = [(0.1, 1), (0.5, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (10, 1),
              (-0.1, 1), (-0.5, 1), (-1, 1), (-2, 1), (-3, 1), (-4, 1), (-5, 1), (-10, 1)]
-# anomalist = [(0.1, 1),  (1, 1),  (5, 1)
+# anomalist = [(5, 1)
 #              ]
 plot_checkpoints = [0, 50, 100, 150, 200, 500, 750, 1000, 1500, 2000, 3500, 5000, 7500] \
                    + list(range(10000, 100000, 5000)) \

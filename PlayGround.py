@@ -77,6 +77,7 @@ def main(seed=None):
     trackers = {}
     metricsD = {}
     gans = {}
+    plots = {}
     for p, params in train_params.items():
         # set local variables for this specific run/architecture:
         minibatch_size = params.get("minibatch_size")
@@ -142,19 +143,18 @@ def main(seed=None):
             #       take train size and keep track of what it generates in some dataframe.
 
             # ### PLOT RESULTS ### #
-            try:
-                plotter = Plots.Plotter(setting_num=p, plot_dir=PLOT_DIR, progress_tracker=pg,
-                                        true_distribution=samples_distribution, anomaly_distribution=None)
-                plotter.plot(plot_types=["cdf", "pdf", "qqplot", "roc_setting", "G_tests", "auc_time",
-                                         "auc_fit_anomaly_heatmap"],
-                             iteration_checkpoints=plot_checkpoints, logx=False)
-            except Exception as e:
-                print("Exception during plotting:", e)
+
+            plotter = Plots.Plotter(setting_num=p, plot_dir=PLOT_DIR, progress_tracker=pg,
+                                    true_distribution=samples_distribution, anomaly_distribution=None)
+            figaxes = plotter.plot(plot_types=["cdf", "pdf", "qqplot", "roc_setting", "G_tests", "auc_time",
+                                               "auc_fit_anomaly_heatmap"],
+                                   iteration_checkpoints=plot_checkpoints, logx=False, pickle_dump=True)
 
             # TODO: save gan object, tf session, graph, object internal and everything.   (and restore)
             gans[p] = gan
             trackers[p] = {"D": pg.D_tracking, "G": pg.G_tracking, "loss": pg.loss_tracking}
             metricsD[p] = metricD
+            plots[p] = figaxes
 
         gan.session.close()
         # tf.reset_default_graph()      # cancels the graph accumalation over iterations
@@ -177,7 +177,7 @@ def main(seed=None):
     # # # put it in a pandas df
     # ### Standardize input? ### #
 
-    return trackers, metricsD, gans
+    return trackers, metricsD, gans, plots
 
 
 def initialize_GAN(D_loss_type, D_pre_train, G_loss_type, d_arch_num, g_arch_num,

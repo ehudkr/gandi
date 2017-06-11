@@ -5,6 +5,7 @@ import seaborn as sns
 import pandas as pd
 import statsmodels.api as sm
 import os
+import pickle
 # from numpy import sort, linspace, cumsum, exp
 from statsmodels.distributions.empirical_distribution import ECDF
 
@@ -19,7 +20,7 @@ def plot_roc_by_setting(setting_num, data, save_path=None):
     :param save_path:
     :return:
     """
-    figaxes = []
+    figaxes = {}
 
     for t, cur_data in data.groupby(level="iter"):
         cur_data = cur_data.loc[t]
@@ -36,7 +37,7 @@ def plot_roc_by_setting(setting_num, data, save_path=None):
         ax.set_ylabel("True Positive Rate")
         # fig.show()
         # plt.show(block=True)
-        figaxes.append((fig, ax))
+        figaxes[t] = (fig, ax)
         if save_path is not None:
             fig.savefig(save_path + "_{iteration}_roc".format(iteration=t))
     return figaxes
@@ -116,7 +117,7 @@ def QQ_plot(true_distribution, generated_samples, line="45", save_path=None):
     :param save_path:
     :return:
     """
-    figs = []
+    figs = {}
     for t, samples in generated_samples.iteritems():
         fig = sm.qqplot(data=samples, dist=true_distribution.get_type(),
                         loc=true_distribution.get_loc(), scale=true_distribution.get_scale(),
@@ -124,7 +125,7 @@ def QQ_plot(true_distribution, generated_samples, line="45", save_path=None):
         fig.suptitle("Q-Q Plot of the Generated Samples")
         if save_path is not None:
             fig.savefig(save_path + "_{iteration}_qqplot".format(iteration=t))
-        figs.append(fig)
+        figs[t] = fig
 
     return figs
 
@@ -139,21 +140,21 @@ def PP_plot(true_distribution, generated_samples, line="45", save_path=None):
     :param save_path:
     :return:
     """
-    figs = []
+    figs = {}
     for t, samples in generated_samples.iteritems():
         fig = sm.qqplot(data=samples, dist=true_distribution.get_type(),
                         loc=true_distribution.get_loc(), scale=true_distribution.get_scale(),
                         fit=False, line=line)
         fig.suptitle("Q-Q Plot of the Generated Samples")
         if save_path is not None:
-            fig.savefig(save_path + "_{iteration}_qqplot".format(iteration=t))
-        figs.append(fig)
+            fig.savefig(save_path + "_{iteration}_ppplot".format(iteration=t))
+        figs[t] = fig
 
     return figs
 
 
 def plot_cdf(true_samples, generated_samples, save_path=None):
-    figaxes = []
+    figaxes = {}
     for t, samples in generated_samples.iteritems():
 
         fig = plt.figure()
@@ -170,12 +171,12 @@ def plot_cdf(true_samples, generated_samples, save_path=None):
         fig.suptitle("True and Generated Empirical CDF")
         if save_path is not None:
             fig.savefig(save_path + "_{iteration}_cdf".format(iteration=t))
-        figaxes.append((fig, ax))
+        figaxes[t] = (fig, ax)
     return figaxes
 
 
 def plot_pdf(true_samples, generated_samples, save_path=None):
-    figaxes = []
+    figaxes = {}
     for t, samples in generated_samples.iteritems():
         fig = plt.figure()
         # true_pdf, gen_pdf = _calc_mutual_pdf(true_samples, generated_samples, bin_num=100)
@@ -192,7 +193,7 @@ def plot_pdf(true_samples, generated_samples, save_path=None):
         ax.set_ylim(0, 1)
         if save_path is not None:
             fig.savefig(save_path + "_{iteration}_pdf".format(iteration=t))
-        figaxes.append((fig, ax))
+        figaxes[t] = (fig, ax)
     return figaxes
 
 
@@ -218,7 +219,7 @@ def plot_G_tests(losses_df, G_tracking, metric_names=None, trim_y=False, logx=Fa
     if "samples" in G_df.columns:
         G_df = G_df.drop("samples", axis="columns")
 
-    figaxes = []
+    figaxes = {}
 
     for metric_name, metric_series in G_df.iteritems():
         fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True)
@@ -236,7 +237,7 @@ def plot_G_tests(losses_df, G_tracking, metric_names=None, trim_y=False, logx=Fa
             else:
                 fig.savefig(save_path + "_loss_{metric}_over_steps".format(metric=metric_name))
 
-        figaxes.append((fig, ax))
+        figaxes[metric_name] = (fig, ax)
     return figaxes
 
 
@@ -305,7 +306,7 @@ class Plotter:
         os.mkdir(plot_dir_name)
         self.plot_path_prefix = os.path.join(plot_dir_name, self.pg.gan_signature)
 
-    def plot(self, plot_types, iteration_checkpoints, trim_y=False, logx=False):
+    def plot(self, plot_types, iteration_checkpoints, trim_y=False, logx=False, pickle_dump=True):
         """
         Main plotting function managing the plots
         :param trim_y: should trim the y limits or not.
@@ -314,19 +315,24 @@ class Plotter:
                                       given iteration (e.g. pdf, cdf, qq plot, roc, etc...)
         :return:
         """
+        figaxes = {}
         # get only the relevant generated samples over time:
         generated_samples = self.pg.G_tracking.loc[iteration_checkpoints, "samples"].dropna()
         for plot_type in plot_types:
             plot_func = self.plot_funcs.get(plot_type)
+            figax = None
             if plot_type == "cdf":
-                plot_cdf(true_samples=self.pg.test_true_samples, generated_samples=generated_samples,
-                         save_path=self.plot_path_prefix)
+                figax = plot_cdf(true_samples=self.pg.test_true_samples, generated_samples=generated_samples,
+                                 save_path=self.plot_path_prefix)
+                figaxes["cdf"] = figax
             elif plot_type == "pdf":
-                plot_pdf(true_samples=self.pg.test_true_samples, generated_samples=generated_samples,
-                         save_path=self.plot_path_prefix)
+                figax = plot_pdf(true_samples=self.pg.test_true_samples, generated_samples=generated_samples,
+                                 save_path=self.plot_path_prefix)
+                figaxes["pdf"] = figax
             elif plot_type == "qqplot":
-                QQ_plot(true_distribution=self.true_distribution, generated_samples=generated_samples,
-                        save_path=self.plot_path_prefix, line="s")
+                figax = QQ_plot(true_distribution=self.true_distribution, generated_samples=generated_samples,
+                                save_path=self.plot_path_prefix, line="s")
+                figaxes["qqplot"] = figax
             elif plot_type == "qqscatter":
                 raise NotImplementedError
             elif plot_type == "roc_setting":
@@ -335,28 +341,41 @@ class Plotter:
                 # df_pos = df.select(lambda x: x[1][0] >= 0, axis="rows")     # filter in positive anomalies
                 df_pos = df.loc[[x[1][0] >= 0 for x in df.index.get_values()]]
                 if not df_pos.empty:
-                    plot_roc_by_setting(self.setting_num, df_pos, save_path=self.plot_path_prefix + "_pos-anom")
+                    figax = plot_roc_by_setting(self.setting_num, df_pos, save_path=self.plot_path_prefix + "_pos-anom")
+                    figaxes["roc_setting_pos"] = figax
                 # df_neg = df.select(lambda x: x[1][0] <= 0, axis="rows")  # filter in negative anomalies
                 df_neg = df.loc[[x[1][0] <= 0 for x in df.index.get_values()]]
                 if not df_neg.empty:
-                    plot_roc_by_setting(self.setting_num, df_neg, save_path=self.plot_path_prefix + "_neg-anom")
+                    figax = plot_roc_by_setting(self.setting_num, df_neg, save_path=self.plot_path_prefix + "_neg-anom")
+                    figaxes["roc_setting_neg"] = figax
             elif plot_type == "auc_time":
                 auc_series = self.pg.D_tracking["AUC"]
                 # auc_series_pos = auc_series.select(lambda x: x[1][0] >= 0)
                 auc_series_pos = auc_series[[x[1][0] >= 0 for x in auc_series.index.get_values()]]
                 if not auc_series_pos.empty:
-                    plot_auc_over_time(auc_series_pos, save_path=self.plot_path_prefix + "_pos-anom", logx=logx)
+                    figax = plot_auc_over_time(auc_series_pos, save_path=self.plot_path_prefix + "_pos-anom", logx=logx)
+                    figaxes["auc_time_pos"] = figax
                 # auc_series_neg = auc_series.select(lambda x: x[1][0] <= 0)
                 auc_series_neg = auc_series[[x[1][0] <= 0 for x in auc_series.index.get_values()]]
                 if not auc_series_neg.empty:
-                    plot_auc_over_time(auc_series_neg, save_path=self.plot_path_prefix + "_neg-anom", logx=logx)
+                    figax = plot_auc_over_time(auc_series_neg, save_path=self.plot_path_prefix + "_neg-anom", logx=logx)
+                    figaxes["auc_time_neg"] = figax
             elif plot_type == "G_tests":
-                plot_G_tests(self.pg.loss_tracking, self.pg.G_tracking, metric_names=None, trim_y=trim_y, logx=logx,
-                             save_path=self.plot_path_prefix)
+                figax = plot_G_tests(self.pg.loss_tracking, self.pg.G_tracking, metric_names=None, trim_y=trim_y, logx=logx,
+                                     save_path=self.plot_path_prefix)
+                figaxes["G_tests"] = figax
             elif plot_type == "auc_fit_anomaly_heatmap":
+                figaxes["auc_fit_anomaly_heatmap"] = {}
                 for fit_test in self.pg.G_tracking.columns.drop("samples"):     # do so for every fit test done on G
-                    plot_auc_anomaly_fit_heatmap(self.pg.D_tracking, self.pg.G_tracking, self.pg.gan_id,
-                                                 fit_test=fit_test, save_path=self.plot_path_prefix)
+                    figax = plot_auc_anomaly_fit_heatmap(self.pg.D_tracking, self.pg.G_tracking, self.pg.gan_id,
+                                                         fit_test=fit_test, save_path=self.plot_path_prefix)
+                    figaxes["auc_fit_anomaly_heatmap"][fit_test] = figax
+        if pickle_dump:
+            pickle.dump(figaxes,
+                        open(self.plot_path_prefix + ".pkl", "wb"),
+                        protocol=pickle.HIGHEST_PROTOCOL)
+        return figaxes
+
 
 
 #
