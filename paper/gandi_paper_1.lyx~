@@ -1,0 +1,699 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage{paralist} 
+%\usepackage{longtable} 
+\usepackage{colortbl} 
+\date{}
+\bibliographystyle{unsrt}
+%\usepackage{chngcntr}
+%\counterwithout{figure}{section}
+%\usepackage{multirow} 
+\end_preamble
+\use_default_options true
+\begin_modules
+eqs-within-sections
+figs-within-sections
+todonotes
+longtablepage
+\end_modules
+\maintain_unincluded_children false
+\language american
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing onehalf
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine natbib
+\cite_engine_type numerical
+\biblio_style vancouver
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 3cm
+\rightmargin 3.5cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 2
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+twocolumn[
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{@twocolumnfalse}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Title
+GANDI: Generative Adversarial Networks for Detecting Irregularities 
+\end_layout
+
+\begin_layout Abstract
+We present a novel methodology to apply the generative adversarial networks
+ (GANs) model to the problem anomaly detection using the usually discarded
+ discriminator to perform the task of detecting irregularities.
+ 
+\end_layout
+
+\begin_layout Abstract
+\begin_inset VSpace 2cm
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{@twocolumnfalse} ]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Introduction
+\end_layout
+
+\begin_layout Subsection*
+Generative Adversarial Networks
+\end_layout
+
+\begin_layout Standard
+Generative models are models that can learn to create synthetic data that
+ is similar to data that is given to them.
+ Over the years, many different models tackled this problem, but recently
+ one promising approach was described is Generative Adversarial Networks
+ (which we abbreviate as GANs) 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "goodfellow2014generative"
+
+\end_inset
+
+ that has dramatically sharpened the possibility of AI-generated content.
+ GANs manage to skip over the difficulty of approximating many intractable
+ probabilistic computations that arise in maximum likelihood related strategies
+ by using an adversarial scheme, harnessing the expressiveness of neural
+ networks
+\begin_inset CommandInset citation
+LatexCommand citep
+key "goodfellow2016nips"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We do not attempt to do a complete survey of GANs, but to just simply describe
+ it in a non-rigorous.
+ but hopefully intuitive, description.
+ A GAN model is composed of two computational components (mainly, neural
+ nets) - a generator (denoted as 
+\begin_inset Formula $G$
+\end_inset
+
+) and a discriminator (denoted as 
+\begin_inset Formula $D$
+\end_inset
+
+).
+ Given a distribution (e.g.
+ a data set) that we'd like to learn (to generate more be able to generate/sampl
+e more data point from) the two nets play a game.
+ The generator, 
+\begin_inset Formula $G$
+\end_inset
+
+, inputs a random noise seed 
+\begin_inset Formula $z\sim\eta$
+\end_inset
+
+ and outputs a synthetic generated sample 
+\begin_inset Formula $G\left(z\right)$
+\end_inset
+
+.
+ The discriminator, 
+\begin_inset Formula $D$
+\end_inset
+
+, then receives two inputs - the generated sample 
+\begin_inset Formula $G\left(z\right)$
+\end_inset
+
+ and a true sample 
+\begin_inset Formula $x$
+\end_inset
+
+ drawn from the true distribution 
+\begin_inset Formula $P$
+\end_inset
+
+.
+ It is then the job of the discriminator to be able to tell which input
+ is synthetic and which is real.
+ An intuitive explanation for the process of learning is that the better
+ the discriminator discriminates - the better 
+\begin_inset Formula $G$
+\end_inset
+
+ has to become generating samples that resembles true data, and the better
+ 
+\begin_inset Formula $G$
+\end_inset
+
+ becomes (outputting real-like data) - the better 
+\begin_inset Formula $D$
+\end_inset
+
+ has to be in discriminating between true and fake data.
+\end_layout
+
+\begin_layout Standard
+If we'll attach the above with the standard cross-entropy loss for the discrimin
+ator:
+\begin_inset Formula 
+\begin{align*}
+J^{\left(D\right)} & =-\frac{1}{2}\mathbb{E}_{x\sim P}\left[\log\left(D\left(x\right)\right)\right]-\frac{1}{2}\mathbb{E}_{z\sim\eta}\left[\log\left(1-D\left(G\left(z\right)\right)\right)\right]
+\end{align*}
+
+\end_inset
+
+Then if we define the generator's loss to be:
+\begin_inset Formula 
+\[
+J^{\left(G\right)}=-J^{\left(D\right)}
+\]
+
+\end_inset
+
+the competition above can be formally described as a zero-sum minimax game
+ the desired parameterization for 
+\begin_inset Formula $G$
+\end_inset
+
+ can be achieved by solving for:
+\begin_inset Formula 
+\[
+\theta^{\left(G\right)\ast}=\arg\min_{\theta^{\left(G\right)}}\max_{\theta^{\left(D\right)}}V\left(\theta^{\left(D\right)},\theta^{\left(G\right)}\right)
+\]
+
+\end_inset
+
+Where 
+\begin_inset Formula $V$
+\end_inset
+
+ is the value function and 
+\begin_inset Formula $\theta^{\left(D\right)},\theta^{\left(G\right)}$
+\end_inset
+
+ are the models parameterization (i.e.
+ the net's weights).
+ 
+\end_layout
+
+\begin_layout Standard
+Under that formalization, Nash equilibrium is achieved in a state (under
+ infinite computational power) the generator produces identical samples
+ to the samples from the true distribution and the discriminator is left
+ confused, outputting answers at random (since it sees two identical inputs
+ that one is labeled with 0 and the other with 1).
+ 
+\end_layout
+
+\begin_layout Standard
+The framework can be visually described in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:The-GAN-framework."
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename figs/gan_framework.PNG
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+The GAN framework.
+ Taken from 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "goodfellow2016nips"
+
+\end_inset
+
+.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:The-GAN-framework."
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Anomaly Detection
+\end_layout
+
+\begin_layout Standard
+Anomaly detection refers to the problem of finding patterns in data that
+ do not conform to a well defined notion of normal or expected behavior.
+ These non-conforming patterns go by many names like anomalies, outliers,
+ exceptions, to name a few, and vary dependent on the application domains.
+ The goal of anomaly detection is to identify these irregular data points
+ in a given sample and report them.
+ Flagging out outliers is a challenging task for several reasons 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "chandola2009anomaly"
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Enumerate
+Lack of labeled data for training and validation.
+\end_layout
+
+\begin_layout Enumerate
+Noisy data can be easily regarded as anomalies and it is often difficult
+ to distinguish and adjust.
+\end_layout
+
+\begin_layout Enumerate
+defining a normal region which encompasses every possible normal behavior
+ is very difficult.
+\end_layout
+
+\begin_layout Enumerate
+The exact notion of anomaly is different in different domains.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Normal behavior can be an evolving thing, and whatever learned now might
+ not be sufficient for future behavior.
+ 
+\end_layout
+
+\begin_layout Standard
+Points (1) and (2) are due to data gathering and measurement and are not
+ in the scope of current work.
+ We argue our method might solve for points (3) and (4), and future work
+ involving reinforcement-learning in a similar framework might solve for
+ (5).
+ Where point (4) can be adjusted by using different NN architectures borrowed
+ from the relevant domain and point (3) is the basic premise of this work.
+\end_layout
+
+\begin_layout Subsection*
+The Basic Premise
+\end_layout
+
+\begin_layout Standard
+As stated, the number of possible anomalies can't be accounted for.
+ Thus, it is impossible to train a discriminative model to tell if a given
+ datum is normally behaved or is it discordant.
+ So a generative model, needs to come to the rescue, a model that knows
+ the distribution 
+\begin_inset Formula $P$
+\end_inset
+
+ can easily output a detectable different output when given 
+\begin_inset Formula $\alpha\notin P$
+\end_inset
+
+ that will alert us that 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ is not an expected datum.
+ This is exactly where we can harness our discriminator 
+\begin_inset Formula $D$
+\end_inset
+
+.
+ The hypothesis goes as such - at some point in our training, 
+\begin_inset Formula $D$
+\end_inset
+
+ outputs values near 1 when encountered with true data and near 0 for data
+ impersonated to the true data.
+ If we could pause the training at that exact point, we would have a machinery
+ that outputs ~1 for normal behavior and outputs some other value (that
+ we need to know to identify and differentiate) for data that is not normally
+ behaved.
+ That is, we solve for challenge (3) in creating a very generalized anomaly
+ detector.
+\end_layout
+
+\begin_layout Standard
+Moreover, given the vast computational power that current state-of-the-art
+ neural networks posses, we can solve challenge (2) by designing different
+ NN for different applications.
+ Since we can process image, audio, time-series and many more using NN.
+ While more classical methods will probably need knowledge based transformation
+ to better represent the data in order to perform, NN is agnostic about
+ data preprocessing and can use their power to learn some internal representatio
+n while at it.
+ A similar shift occurred in the field of computer vision where hand-crafted
+ preprocessed representations (such as histogram of gradients or frequency
+ filtering) gave away to raw inputs and NN.
+ This can make the detection of anomalies much more accessible.
+\end_layout
+
+\begin_layout Subsection*
+Theoretical Challenges and Practical Overcomes
+\end_layout
+
+\begin_layout Standard
+As stated above, all the applications of GANs known to the writer deal with
+ data generation.
+ That is, at the end of the training process, they discard the discriminator
+ and use the generator to produce more data for their need.
+ This mentality is supported by the theory, too.
+ As the Nash equilibrium sentences our discriminator to life of absolute
+ confusion at which its discarding seems like euthanasia.
+ 
+\end_layout
+
+\begin_layout Standard
+Since I lack the skills to twist the theory behind the model so that our
+ discriminator will win the game (discriminate immaculately) and the generator
+ to lose (generate noise), I turn to the empirical process of finding that
+ sweet-spot during training where the discriminator acts his best.
+ I can then pause training and export (or rather metamorphose) our discriminator
+ as an anomaly detector.
+\end_layout
+
+\begin_layout Section*
+Methods
+\end_layout
+
+\begin_layout Standard
+First step is to tried the above hypothesis on a simple, easy to validate,
+ easy to characterize problem.
+ The toy problem chosen for the mission is a simple 1-dimensional Gaussian
+ distribution.
+ Gaussian distribution can be easily identifiable when learned (i.e.
+ it has low entropy structure).
+ The low dimension makes it easy to check, using vastly available statistical
+ approaches, how good the generator is learning the true distribution.
+ The choice of numerical distribution instead of a data set allows us to
+ draw as many samples as needed while characterizing the learning process.
+ Moreover, it allows us to easily define anomalies by specifying another
+ (Gaussian) distribution with different parameters.
+ The performance of the anomaly detectors can be compared with the effect
+ size between the two distributions: 
+\begin_inset Formula 
+\[
+\frac{\mu_{true}-\mu_{anomaly}}{\sigma_{true}\cdot\sigma_{anomaly}}
+\]
+
+\end_inset
+
+As where in our case, we fix 
+\begin_inset Formula $\sigma_{true}=\sigma_{anomaly}=1$
+\end_inset
+
+ and thus the effect size is only the shift in means.
+\end_layout
+
+\begin_layout Standard
+Under these specifications, the hypothesis can be rephrased: Can we use
+ various goodness-of-fit measurements applied to 
+\begin_inset Formula $G$
+\end_inset
+
+ during training that will reveal when is it best to stop the process of
+ training and say the current discriminator is the best anomaly detector
+ can be achieved in the process?
+\end_layout
+
+\begin_layout Standard
+To test that hypothesis, a Python framework was written using TensorFlow.
+ The experiment initializes a GAN model of two neural network, different
+ architectures and hyperparametrization (in both nets) were tried.
+ The training process is then paused every 
+\begin_inset Formula $k$
+\end_inset
+
+ steps (or otherwise specified) and it takes several measurements of the
+ system.
+ Mainly it tests the performance of the discriminator as an anomaly detector
+ and, in addition, it performs several goodness-of-fit tests between the
+ generator and the true distribution.
+ The tests done were Kullback-Leibler divergence, Kolmogorov-Smirnov statistic
+ and Kolmogorov-Smirnov p-value 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "kolmogorov1933sulla,smirnov1948"
+
+\end_inset
+
+, Anderson-Darling 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "anderson1952,anderson1954"
+
+\end_inset
+
+, simple 
+\begin_inset Formula $\ell_{1}$
+\end_inset
+
+ difference between the two cumulative density functions (CDFs) and visual
+ inspections of the CDFs, PDFs and QQ-plot (quantile-quantile plot 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "qqplot"
+
+\end_inset
+
+) between the generated and true distribution.
+ 
+\end_layout
+
+\begin_layout Standard
+We tried to characterize the behavior of the these measurements with measurement
+s of detection accuracy (using mostly area under the curve (AUC)) and with
+ the training iteration and the training loss progression.
+\end_layout
+
+\begin_layout Section*
+Results
+\end_layout
+
+\begin_layout Section*
+Discussion
+\end_layout
+
+\begin_layout Standard
+challenges in high dimensional good of fit measure that suggest good discriminat
+or behavior
+\end_layout
+
+\begin_layout Subsection*
+Concluding Remarks
+\end_layout
+
+\begin_layout Section*
+Materials and Methods
+\end_layout
+
+\begin_layout Section*
+Acknowledgments
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+raggedbottom
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "bibliography"
+options "vancouver"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+onecolumn
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+flushbottom
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Part*
+Supplementary Materials
+\end_layout
+
+\end_body
+\end_document
