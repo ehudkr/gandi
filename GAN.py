@@ -1,11 +1,8 @@
 import tensorflow as tf
-# import pandas as pd
-# import os
-#
-# import Metrics
+import warnings
 
 
-NUM_TEST_SAMPLES = 1000
+# NUM_TEST_SAMPLES = 1000
 
 
 class GAN:
@@ -95,6 +92,7 @@ class GAN:
 
         # Pre-train the discriminator
         if self.D_pre is not None:
+            warnings.warn("Pre-training for the discriminator network is not supported.")
             # pre_train(D_pre, session, num_pre_train_steps, samples_distribution)
             # initial_D_weights = self.session.run(D_pre.params)
             # for i, v in enumerate(self.D.params):

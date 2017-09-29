@@ -50,6 +50,43 @@ def create_run_signature(seed):
     return "_".join(["GAN", localtime, seed_str, "{}"])     # {} as place holder for gan_id to create gan_signature
 
 
+def initialize_GAN(D_loss_type, D_pre_train, G_loss_type, d_arch_num, g_arch_num,
+                   G_input_dim, G_output_dim, D_input_dim, minibatch_size, p, pg):
+    """
+    Since the discriminator and generator are interlaced (the generator optimizes the output / loss of D (D2)), it is
+    needed to separate the initialization process into two steps: first you create the two graphs, and then you
+    initialize them.
+    :param str D_loss_type: The type off loss to use for the optimization process in the discriminator.
+    :param bool D_pre_train: Should you pre-train the discriminator network before beginning the mutual model training.
+    :param str G_loss_type: The type off loss to use for the optimization process in the generator.
+    :param int d_arch_num: number of architecture setting for the discriminator.
+    :param int g_arch_num: number of architecture setting for the generator.
+    :param int G_input_dim: The input dimension for the generator (the generator inputs noise and outputs generated
+                            data).
+    :param int G_output_dim: The output dimension of the generator (should corresponds to the real data dimension and
+                             the input dimension of the discriminator).
+    :param int D_input_dim: The input dimension of the discriminator (and the dimension of the real data too).
+    :param int minibatch_size: the size of the minibatch (not used explicitly, just to know if there's minibatch at all
+                               or not - i.e. if it's not zero).
+    :param int|str p: The setting number of the current GAN model configuration.
+    :param ProgressTracker pg: the ProgressTracker instance that is coupled to the GAN model.
+    :return:The networks and a global_step that will follow the operations done in the tensorflow blackbox.
+    :rtype: (Discriminator, Discriminator|None, Generator, tf.Variable)
+    """
+    global_step = tf.Variable(0, name="global_step", trainable=False)
+    G = Generator(G_input_dim, minibatch_size, arch_num=g_arch_num, output_dim=G_output_dim, var_scope_name=str(p) + "G")
+    D = Discriminator(D_input_dim, minibatch_size, G.G, arch_num=d_arch_num, var_scope_name=str(p) + "D")
+    D.initialize_graph(loss_type=D_loss_type, global_step=global_step)
+    G.initialize_graph(D=D, loss_type=G_loss_type, global_step=global_step)
+    if D_pre_train:
+        D_pre = Discriminator(D_input_dim, minibatch_size, G.G, arch_num=d_arch_num, var_scope_name="D_pre")
+        D_pre.initialize_graph(loss_type=D_loss_type, global_step=global_step)
+    else:
+        D_pre = None
+    pg.init_tensorboard_summary()
+    return D, D_pre, G, global_step
+
+
 # TODO: how to save the models + saving the trained tensforflow networks? save session?
 
 
@@ -62,8 +99,7 @@ def main(seed=None):
     true_mu, true_sigma = RunParams.true_mu, RunParams.true_sigma
     # performance measurement variables:
     train_params = RunParams.train_params
-    # anomalist is in (mu, std_dev) format
-    anomalist = RunParams.anomalist
+    anomalist = RunParams.anomalist                         # anomalist is in (mu, std_dev) format
     plot_checkpoints = RunParams.plot_checkpoints
     G_test_checkpoints = RunParams.G_test_checkpoints
     D_test_checkpoints = RunParams.D_test_checkpoints
@@ -94,29 +130,34 @@ def main(seed=None):
         D_tests_names = RunParams.D_tests_names
 
         # TODO: "cross validation": add loop for k times. save results. save models too
-        #       maybe just cv the anomaly test batch to get mean_error and std.
 
-        # initialize a ProgressTracker object that will accompany the GAN training:
+        # initialize the object that will test the performance of the discriminator as an anomaly detector:
         metricD = MetricsD(anomalist=anomalist, metrics_names=D_tests_names,
                            anomaly_base_distribution=Distributions.GaussianDistribution,
                            true_loc=true_mu, true_scale=true_sigma,
                            G_n_test_samples=test_size)
+        # initialize a ProgressTracker object that will accompany the GAN training:
+        n_loss_tracking = RunParams.n_loss_tracking
+        n_logger = RunParams.n_logger
+        n_tensorboard = RunParams.n_tensorboard
+        n_checkpoint = RunParams.n_checkpoint
+        reuse_test_samples = RunParams.reuse_test_samples
         pg = Tracker.ProgressTracker(gan_id=p, train_random_seed=seed, run_signature=run_signature,
                                      G_tests_names=G_tests_names, D_tester=metricD,
-                                     n_loss_tracking=10,
+                                     n_loss_tracking=n_loss_tracking,
                                      n_G_tracking=plot_checkpoints + G_test_checkpoints,
                                      n_D_tracking=plot_checkpoints + D_test_checkpoints,
-                                     n_logger=10000, n_tensorboard=10000, n_checkpoint=None,
+                                     n_logger=n_logger, n_tensorboard=n_tensorboard, n_checkpoint=n_checkpoint,
                                      G_test_samples=noise_distribution.sample(test_size).reshape(-1, G_input_dim),
                                      test_true_samples=samples_distribution.sample(test_size).reshape(-1, D_input_dim),
-                                     reuse_test_samples=False,
+                                     reuse_test_samples=reuse_test_samples,
                                      log_dir_path=LOG_DIR, tensorboard_dir_path=TENSBOARD_DIR,
                                      checkpoint_dir_path=CHKPT_DIR)
 
         # initialize the current network:
-        #       Note:   in order to make results reproducible,
-        #               this is the only way to set a "global" seed per graph every iteration.
-        #               can work without, the GAN instance will get default None for graph object.
+        #       Note:   in order to make results reproducible, you should set global rng random state seed.
+        #               Since you can test many GAN settings in one PlayGround.py run, this is the only way to set a
+        #               "global" seed per graph for every GAN setting that is being trained.
         gan_graph = tf.Graph()
         #       Use the current gan_graph instance during the initialization and training of the specific GAN setting
         with gan_graph.as_default():
@@ -131,11 +172,7 @@ def main(seed=None):
                       training_steps=training_steps, minibatch_size=minibatch_size,
                       d_step_ratio=DG_training_steps_ratio,
                       graph=gan_graph, global_step=global_step,
-                      id_num=p, tracker=pg,
-                      # log=(200, logger),
-                      # tensorboard_params=(10, TENSBOARD_DIR.format(p)),
-                      # checkpoints_params=(2000, CHKPT_DIR.format(p))
-                      )
+                      id_num=p, tracker=pg)
             gan.train_model()       # note that D and G updated as well during training
             # TODO: maybe think of a way to supply the training samples.
             #       so you could have them in hand. How will that incorporate with the number of steps?
@@ -170,45 +207,20 @@ def main(seed=None):
     # ### General Scheme ### #
     # choose distributions
     # create generator
-    # for discriminator going and being more complex:
+    # for generator being more and more complex:
     # # train generator and discriminator
     # # for anomaly going and increasing:
     # # # calculate the relative detection rate of the discriminator
-    # # # put it in a pandas df
+    # # # store results
     # ### Standardize input? ### #
 
     return trackers, metricsD, gans, plots
 
 
-def initialize_GAN(D_loss_type, D_pre_train, G_loss_type, d_arch_num, g_arch_num,
-                   G_input_dim, G_output_dim, D_input_dim, minibatch_size, p, pg):
-    global_step = tf.Variable(0, name="global_step", trainable=False)
-    G = Generator(G_input_dim, minibatch_size, arch_num=g_arch_num, output_dim=G_output_dim, var_scope_name=str(p) + "G")
-    D = Discriminator(D_input_dim, minibatch_size, G.G, arch_num=d_arch_num, var_scope_name=str(p) + "D")
-    D.initialize_graph(loss_type=D_loss_type, global_step=global_step)
-    G.initialize_graph(D=D, loss_type=G_loss_type, global_step=global_step)
-    if D_pre_train:
-        D_pre = Discriminator(D_input_dim, minibatch_size, G.G, arch_num=d_arch_num, var_scope_name="D_pre")
-        D_pre.initialize_graph(loss_type=D_loss_type, global_step=global_step)
-    else:
-        D_pre = None
-    pg.init_tensorboard_summary()
-    return D, D_pre, G, global_step
-
-
 if __name__ == "__main__":
-    # try:
-    #     tf.gfile.DeleteRecursively(os.path.split(TENSBOARD_DIR)[0])
-    # except Exception as e:
-    #     print(e)
-    # seed = np.random.randint(low=0, high=np.uint32(-1), size=2, dtype=np.uint32)
-    seed = np.random.randint(low=0, high=999999, size=2, dtype=np.uint32)
-    print(seed)
-    # seed = 0
-    # seed = 93440      # was a good seed I used to see schizophrenia.
+    rng_state = np.random.randint(low=0, high=999999, size=2, dtype=np.uint32)  # one seed for numpy and one for tensorf
+    print(rng_state)
     start_time = time.time()
     print("starting time: ", time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime(start_time)))
-    res = main(seed=seed)
+    res = main(seed=rng_state)
     print("time elapsed: ", time.time()-start_time)
-    # pickle.dump(res, open(os.path.join(RSLT_DIR,
-    #                                    res["trackers"][list(res["trackers"].keys())[0]].LOG_FILENAME + ".pkl"), "wb"))

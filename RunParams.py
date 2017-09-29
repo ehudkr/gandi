@@ -80,18 +80,21 @@ train_params = {
 # anomalist is in (mu, std_dev) format
 anomalist = [(0.1, 1), (0.5, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (10, 1),
              (-0.1, 1), (-0.5, 1), (-1, 1), (-2, 1), (-3, 1), (-4, 1), (-5, 1), (-10, 1)]
-# anomalist = [(5, 1)
-#              ]
+
 plot_checkpoints = [0, 50, 100, 150, 200, 500, 750, 1000, 1500, 2000, 3500, 5000, 7500] \
                    + list(range(10000, 100000, 5000)) \
                    + list(range(100000, training_steps, 10000))
 G_test_checkpoints = [i for i in range(0, training_steps, 1000)]
 D_test_checkpoints = [i for i in range(0, training_steps, 1000)]
 
-# plot_checkpoints = [10000]
-
 G_tests_names = ["KL", "KS_s", "KS_p", "CDF_l1", "Anderson"]
 D_tests_names = ["AUC"]
-# G_tests_names = ["KL"]
-# D_tests_names = ["AUC"]
+
+# Progress tracker parameters:
+n_loss_tracking = 10        # track the change and save it into DataFrame in loss every n_loss_tracking steps
+n_logger = 10000            # write to a text-logger every n_logger steps (iteration, loss, time, etc.)
+n_tensorboard = 10000       # track using tensorboard's tf.summary every n_tensorboard steps.
+n_checkpoint = None         # save the current state using tf.Saver every n_checkpoint steps.
+reuse_test_samples = False  # Whether to use the same test samples when testing the performance while training or to
+#                           # use (generate) new samples for testing each time
 

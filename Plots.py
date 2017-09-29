@@ -313,7 +313,7 @@ class Plotter:
         :param plot_types: what types of plots to generate. Should correspond to the Plotter.plot_funcs dictionary
         :param iteration_checkpoints: at what iterations to generate plots. For plots that need an entire figure for a
                                       given iteration (e.g. pdf, cdf, qq plot, roc, etc...)
-        :return:
+        :return dict: Dictionary of plot name and the figure object (or (figure,axes) tuple).
         """
         figaxes = {}
         # get only the relevant generated samples over time:
@@ -376,7 +376,7 @@ class Plotter:
                         protocol=pickle.HIGHEST_PROTOCOL)
         return figaxes
 
-
+#
 
 #
 
@@ -385,6 +385,7 @@ class Plotter:
 # ######################### #
 # ## Plots for after run ## #
 # ######################### #
+
 
 def aplot_auc_anomaly_fit_heatmap(results, fit_test="KL", vmin=0, cmap="GnBu", save_path=None):
     figaxes = {}

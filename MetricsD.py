@@ -12,6 +12,14 @@ class MetricsD:
         self.G_n_test_samples = G_n_test_samples
 
     def test_D(self, t, gan, test_G_seed=None, true_test_samples=None):
+        """
+        Test the discriminator performance as an anomaly detector.
+        :param int t: The iteration of which the training was paused to perform testing.
+        :param GAN.GAN gan: The GAN object currently being trained.
+        :param int test_G_seed: a rng state in order to give the same baseline to the adversarial generator producing.
+        :param true_test_samples: The true data test samples to which to test the anomaly detector.
+        :return List[dict]: dictionary of test name and the outcome of the test - to later be put in pd.DataFrame.
+        """
         res = []
         # test real samples:
         # d_pred_complement = gan.bookkeep.iloc[-1]["D_loss"] > gan.bookkeep.iloc[-1]["G_loss"]

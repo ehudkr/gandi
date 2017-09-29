@@ -6,7 +6,6 @@ import tensorflow as tf
 import os
 import logging
 import time
-from collections import namedtuple
 
 
 class ProgressTracker:
@@ -110,6 +109,12 @@ class ProgressTracker:
 
     @staticmethod
     def create_gan_id_signature(gan_id, seed):
+        """
+        creare a unique signature for the current run
+        :param int gan_id: the number of setting configuration of the current model.
+        :param int|np.ndarray seed: the rng state used before the initialization
+        :return str: A unique signature of the current run based on the time, configuration setting and the random state
+        """
         localtime = time.localtime(time.time())
         localtime = "{Y}-{M:02}-{D:02}_{h:02}-{m:02}-{s:02}".format(Y=localtime.tm_year, M=localtime.tm_mon,
                                                                     D=localtime.tm_mday, h=localtime.tm_hour,
@@ -117,9 +122,9 @@ class ProgressTracker:
         seed_str = seed if seed is type(int) else "-".join([str(x) for x in seed])
         return "_".join(["GAN", localtime, seed_str, str(gan_id)])
 
-    # ############## ## #
+    # ################# #
     # ## Manual Log: ## #
-    # ############## ## #
+    # ################# #
     def init_logger(self, log_dir=None):
         logger_file_name = "log" + self.gan_signature
         logger = logging.getLogger(name=logger_file_name)
@@ -137,9 +142,9 @@ class ProgressTracker:
                                                                                            G_loss=G_loss,
                                                                                            time=time.asctime()))
 
-    # ################ ## #
+    # ################### #
     # ## Track Losses: ## #
-    # ################ ## #
+    # ################### #
     def should_track_loss(self, t):
         return self._should_track(t, self.n_loss_tracking)
 
