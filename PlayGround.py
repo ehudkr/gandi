@@ -218,6 +218,11 @@ def main(seed=None):
 
 
 if __name__ == "__main__":
+    # create the needed subdirectory project structure for the run's outputs:
+    for directory in [LOG_DIR, TENSBOARD_DIR, PLOT_DIR, CHKPT_DIR, RSLT_DIR]:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    # set random state, measure time and run:
     rng_state = np.random.randint(low=0, high=999999, size=2, dtype=np.uint32)  # one seed for numpy and one for tensorf
     print(rng_state)
     start_time = time.time()

@@ -112,8 +112,8 @@ Adviser: Dr.
 
 \begin_layout Abstract
 We present a novel methodology to apply the generative adversarial networks
- (GANs) model to the problem anomaly detection using the usually discarded
- discriminator.
+ (GANs) model to the problem of anomaly detection using the usually discarded
+ discriminator as our detector.
  While training, the discriminator learns some meaningful representation
  of the true distribution, otherwise it's generator partner would not improve
  it's own generating abilities.
@@ -157,9 +157,9 @@ Generative Adversarial Networks
 \begin_layout Standard
 Generative models are models that can learn to create synthetic data that
  is similar to data that is given to them.
- Over the years, many different models tackled this problem, but recently
- one promising approach was described is Generative Adversarial Networks
- (which we abbreviate as GANs)
+ Over the years, many different models tackled this problem, but recently,
+ one promising approach devised is Generative Adversarial Networks (which
+ we abbreviate as GANs) 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "goodfellow2014generative"
@@ -169,8 +169,8 @@ key "goodfellow2014generative"
  that has dramatically sharpened the possibility of AI-generated content.
  GANs manage to skip over the difficulty of approximating many intractable
  probabilistic computations that arise in maximum likelihood related strategies
- by using an adversarial scheme, harnessing the expressiveness of neural
- networks
+ by using an adversarial scheme and harnessing the expressive power of neural
+ networks 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "goodfellow2016nips"
@@ -181,9 +181,8 @@ key "goodfellow2016nips"
 \end_layout
 
 \begin_layout Standard
-We do not attempt to do a complete survey of GANs, but to just simply describe
- it in a non-rigorous.
- but hopefully intuitive, description.
+We do not attempt to do a complete survey of GANs, but only to simply describe
+ it in a non-rigorous, but hopefully intuitive, way.
  A GAN model is composed of two computational components (mainly, neural
  nets) - a generator (denoted as 
 \begin_inset Formula $G$
@@ -194,9 +193,13 @@ We do not attempt to do a complete survey of GANs, but to just simply describe
 \end_inset
 
 ).
- Given a distribution (e.g.
- a data set) that we'd like to learn (to generate more be able to generate/sampl
-e more data point from) the two nets play a game.
+ Given a distribution 
+\begin_inset Formula $P$
+\end_inset
+
+ (e.g.
+ a data set) that we'd like to learn (to be able to generate more data similar
+ to it), the two nets play a game.
  The generator, 
 \begin_inset Formula $G$
 \end_inset
@@ -234,7 +237,7 @@ e more data point from) the two nets play a game.
 \begin_inset Formula $G$
 \end_inset
 
- has to become generating samples that resembles true data, and the better
+ has to become generating samples that resemble true data, and the better
  
 \begin_inset Formula $G$
 \end_inset
@@ -243,12 +246,11 @@ e more data point from) the two nets play a game.
 \begin_inset Formula $D$
 \end_inset
 
- has to be in discriminating between true and fake data.
+ has to be in discriminating between true and fake.
 \end_layout
 
 \begin_layout Standard
-If we'll attach the above with the standard cross-entropy loss for the discrimin
-ator:
+If we'll define the discriminator's loss function as standard cross-entropy:
 \begin_inset Formula 
 \begin{equation}
 J^{\left(D\right)}=-\frac{1}{2}\mathbb{E}_{x\sim P}\left[\log\left(D\left(x\right)\right)\right]-\frac{1}{2}\mathbb{E}_{z\sim\eta}\left[\log\left(1-D\left(G\left(z\right)\right)\right)\right]
@@ -256,7 +258,7 @@ J^{\left(D\right)}=-\frac{1}{2}\mathbb{E}_{x\sim P}\left[\log\left(D\left(x\righ
 
 \end_inset
 
-Then if we define the generator's loss to be:
+And Then define the generator's loss to be:
 \begin_inset Formula 
 \begin{equation}
 J^{\left(G\right)}=-J^{\left(D\right)}
@@ -264,8 +266,8 @@ J^{\left(G\right)}=-J^{\left(D\right)}
 
 \end_inset
 
-the competition above can be formally described as a zero-sum minimax game
- the desired parameterization for 
+The competition above can be formally described as a zero-sum minimax game.
+ Hence, the desired parameterization for 
 \begin_inset Formula $G$
 \end_inset
 
@@ -295,11 +297,10 @@ Under that formalization,
 \emph on
  Nash equilibrium 
 \emph default
-is achieved in a state (under infinite computational power) the generator
- produces identical samples to the samples from the true distribution and
- the discriminator is left confused, outputting answers at random (since
- it sees two identical inputs that one is labeled with 0 and the other with
- 1).
+is achieved (assuming infinite computational power) when the generator produces
+ samples identical to the samples from the true distribution and the discriminat
+or is left confused, outputting answers at random (since it sees two identical
+ inputs that one is labeled with 0 and the other labeled 1).
  
 \end_layout
 
@@ -311,7 +312,7 @@ reference "fig:The-GAN-framework."
 
 \end_inset
 
-
+.
 \end_layout
 
 \begin_layout Standard
@@ -418,10 +419,9 @@ Normal behavior can be an evolving thing, and whatever learned now might
 Points (1) and (2) are due to data gathering and measurement and are not
  in the scope of current work.
  We argue our method might solve for points (3) and (4), and future work
- involving reinforcement-learning in a similar framework might solve for
- (5).
+ involving online-learning in a similar framework might solve for (5).
  Where point (4) can be adjusted by using different NN architectures borrowed
- from the relevant domain and point (3) is the basic premise of this work.
+ from the relevant domain, and point (3) is the basic premise of this work.
 \end_layout
 
 \begin_layout Subsection*
@@ -432,8 +432,8 @@ The Basic Premise
 As stated, the number of possible anomalies can't be accounted for.
  Thus, it is impossible to train a discriminative model to tell if a given
  datum is normally behaved or is it discordant.
- So a generative model, needs to come to the rescue, a model that knows
- the distribution 
+ Hence, a generative model needs to come to the rescue.
+ A model that knows the distribution 
 \begin_inset Formula $P$
 \end_inset
 
@@ -451,33 +451,47 @@ As stated, the number of possible anomalies can't be accounted for.
 \end_inset
 
 .
- The hypothesis goes as such - at some point in our training, 
+ 
+\end_layout
+
+\begin_layout Standard
+The hypothesis goes as such - at some point in our training, 
 \begin_inset Formula $D$
 \end_inset
 
- outputs values near 1 when encountered with true data and near 0 for data
- impersonated to the true data.
+ outputs values near 
+\begin_inset Formula $1$
+\end_inset
+
+ when encountered with true data and near 
+\begin_inset Formula $0$
+\end_inset
+
+ for data impersonated to be true data.
  If we could pause the training at that exact point, we would have a machinery
- that outputs ~1 for normal behavior and outputs some other value (that
- we need to know to identify and differentiate) for data that is not normally
- behaved.
+ that outputs 
+\begin_inset Formula $\sim1$
+\end_inset
+
+ for normal behavior and outputs some other value (that we need to know
+ to identify and differentiate) for data that is not normally behaved.
  That is, we solve for challenge (3) in creating a very generalized anomaly
  detector.
 \end_layout
 
 \begin_layout Standard
 Moreover, given the vast computational power that current state-of-the-art
- neural networks posses, we can solve challenge (2) by designing different
- NN for different applications.
- Since we can process image, audio, time-series and many more using NN.
+ neural networks posses, we can solve challenge (4) by designing different
+ NN for different applications, borrowing the results of an already prolific
+ research harnessing NN for these applications.
  While more classical methods will probably need knowledge based transformation
- to better represent the data in order to perform, NN is agnostic about
- data preprocessing and can use their power to learn some internal representatio
-n while at it.
- A similar shift occurred in the field of computer vision where hand-crafted
- preprocessed representations (such as histogram of gradients or frequency
- filtering) and classical machine learning algorithms gave away to raw inputs
- and NN.
+ to better represent the data in order to perform, NN are (almost) agnostic
+ about data preprocessing and can use their power to learn some internal
+ representation while at it.
+ A similar example for this trend is the shift that occurred in the field
+ of computer vision where hand-crafted preprocessed representations (such
+ as histogram of gradients or frequency filtering) and classical machine
+ learning algorithms gave away to raw inputs and expressive NN.
  Thanks to NN, this 
 \begin_inset Quotes eld
 \end_inset
@@ -487,7 +501,8 @@ out-of-the-box
 \end_inset
 
  behavior, makes GANDI both powerful and easy to use, and can make the process
- of detecting of anomalies much more accessible and, hopefully, abundant.
+ of detecting of anomalies much more accessible in many applications.
+ 
 \end_layout
 
 \begin_layout Subsection*
@@ -497,19 +512,20 @@ Theoretical Challenges and Practical Overcomes
 \begin_layout Standard
 As stated above, all the applications of GANs known to the writer deal with
  data generation.
- That is, at the end of the training process, they discard the discriminator
+ That is, at the end of the training process they discard the discriminator
  and use the generator to produce more data for their need.
- This mentality is supported by the theory, too.
- As the Nash equilibrium sentences our discriminator to life of absolute
- confusion at which its discarding seems like euthanasia.
+ This method of operation is supported by the theory too, as the Nash equilibriu
+m sentences our discriminator to life of absolute confusion at which its
+ discarding may seem more like euthanasia.
  
 \end_layout
 
 \begin_layout Standard
 Since I lack the skills to twist the theory behind the model so that our
- discriminator will win the game (discriminate immaculately) and the generator
- to lose (generate noise), I turn to the empirical process of finding that
- sweet-spot during training where the discriminator acts his best.
+ discriminator will win the game (i.e.
+ discriminate immaculately) and the generator to lose (i.e.
+ generate noise), I turn to the empirical process of finding that sweet-spot
+ during training where the discriminator acts it's best.
  I can then pause training and export (or rather metamorphose) our discriminator
  as an anomaly detector.
  This is based on the notion that the discriminator fitness is parabolic
@@ -528,16 +544,17 @@ Methods
 \end_layout
 
 \begin_layout Standard
-First step is to tried the above hypothesis on a simple, easy to validate,
+First step is to try the above hypothesis on a simple, easy to validate,
  easy to characterize problem.
  The toy problem chosen for the mission is a simple 1-dimensional Gaussian
  distribution.
  Gaussian distribution can be easily identifiable when learned (i.e.
  it has low entropy structure).
- The low dimension makes it easy to check, using vastly available statistical
- approaches, how good the generator is learning the true distribution.
- The choice of numerical distribution instead of a data set allows us to
- draw as many samples as needed while characterizing the learning process.
+ The low dimension makes it easy to check, both visually and analytically,
+ using vastly available statistical approaches, how good the generator is
+ learning the true distribution.
+ The choice of numerical distribution, instead of a data set, allows us
+ to draw as many samples as needed while characterizing the learning process.
  Moreover, it allows us to easily define anomalies by specifying another
  (Gaussian) distribution with different parameters.
  The performance of the anomaly detectors can be compared with the effect
@@ -554,6 +571,8 @@ As where in our case, we fix
 \end_inset
 
  and thus the effect size is only the shift in means.
+ A good sanity check is that the bigger the effect - the better the detection
+ performance.
 \end_layout
 
 \begin_layout Standard
@@ -568,7 +587,7 @@ Under these specifications, the hypothesis can be rephrased: Can we use
 \end_layout
 
 \begin_layout Standard
-To test that hypothesis, a Python framework was written using TensorFlow.
+To test that hypothesis, a Python framework was constructed using TensorFlow.
  The experiment initializes a GAN model of two neural network, different
  architectures and hyperparametrization (in both nets) were tried.
  The training process is then paused every 
@@ -620,14 +639,26 @@ key "qqplot"
 We tried to characterize the behavior of how these measurements correspond
  to the measurements of detection accuracy as a function of training iteration
  and the training loss progression.
- We test the performance of the anomaly detector as if it was a binary classific
-ation problem, supplying it with samples from the true distribution labeled
- as 1 (corresponding the value 
+ 
+\end_layout
+
+\begin_layout Standard
+We test the performance of the anomaly detector as if it was a binary classifica
+tion problem, supplying it with samples from the true distribution labeled
+ as 
+\begin_inset Formula $1$
+\end_inset
+
+ (corresponding the value 
 \begin_inset Formula $D$
 \end_inset
 
  tried to achieve on real samples while training) and samples from the anomaly
- distribution labeled with 0.
+ distribution labeled with 
+\begin_inset Formula $0$
+\end_inset
+
+.
  We can then apply several metrics on the resulting contingency matrix and
  we mostly use the area under the curve (AUC).
 \end_layout
@@ -665,7 +696,31 @@ Results
 
 \begin_layout Standard
 Training converges and it seems the generator does perform better the longer
- the train goes #FIG-GIF_of_(cdf, pdf, qq)#.
+ the train goes #FIG-GIF_of_(
+\begin_inset CommandInset href
+LatexCommand href
+name "cdf"
+target "https://bitbucket.org/ehudk/gandi/src/29f84eae237ad1dcb9c1617ee163aefefdaa73a4/paper/figs/cdf_through_time.gif?at=master&fileviewer=file-view-default"
+
+\end_inset
+
+, 
+\begin_inset CommandInset href
+LatexCommand href
+name "pdf"
+target "https://bitbucket.org/ehudk/gandi/src/29f84eae237ad1dcb9c1617ee163aefefdaa73a4/paper/figs/pdf_through_time.gif?at=master&fileviewer=file-view-default"
+
+\end_inset
+
+, 
+\begin_inset CommandInset href
+LatexCommand href
+name "qq"
+target "https://bitbucket.org/ehudk/gandi/src/29f84eae237ad1dcb9c1617ee163aefefdaa73a4/paper/figs/qq_through_time.gif?at=master&fileviewer=file-view-default"
+
+\end_inset
+
+)#.
  However, there is no apparent relation between the loss, the number of
  iterations and the goodness of fit statistics.
  These do improve as training progresses, but also have an oscillating behavior
@@ -754,9 +809,10 @@ reference "fig:auc_over_gstat_heatmap"
 
 \begin_layout Standard
 \begin_inset Float figure
+placement t
 wide true
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \align center
@@ -801,6 +857,7 @@ name "fig:ad_auc_over_time"
 
 \begin_layout Standard
 \begin_inset Float figure
+placement p
 wide true
 sideways false
 status collapsed
@@ -934,12 +991,41 @@ We presented a novel method for doing anomaly detection using the usually
  We could not characterize the behavior of this model as an anomaly detector
  and could not correlate its performance to any measurable estimands.
  Specifically, we did not find it neatly correlated with the improvement
- of the generator or the the loss function.
+ of the generator or the loss function.
 \end_layout
 
 \begin_layout Standard
-The presented experiment can not be naturally scaled as it is not trivial
- to test for goodness-of-fit in high-dimensional data.
+The oscillated behavior might be due process of peak performance - the generator
+ being good confuses the discriminator which, in turn, falls behind.
+ This low performance of the discriminator causes the generator to atrophy.
+ The declined performance of the generator make it easier for the discriminator
+ to discriminate and, thus, to improve again.
+ The better the discriminator - the better the generator becomes.
+ And we're back to the point where we started.
+ We remind that gradient descent based optimization will probably not achieve
+ equilibrium due to the non-convexity of the problem, but rather some other
+ steady-state.
+\end_layout
+
+\begin_layout Standard
+One possible way to combat this oscillating behavior of the model (appearing
+ in both goodness-of-fit statistics and loss values) might be through the
+ the use of a smoother loss function like Earth-Mover Distance (Wasserstein
+ distance) as suggested in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "arjovsky2017wasserstein"
+
+\end_inset
+
+.
+ Letting go of the cross-entropy might produce more stable results.
+ 
+\end_layout
+
+\begin_layout Standard
+The presented experiment cannot be naturally scaled as is, because it is
+ not trivial to test for goodness-of-fit in high-dimensional data.
  This is because distance between two high-dimensional CDFs is not well
  defined unless considering all possible combinations (of dimensions) which
  makes it exponentially hard.
@@ -954,27 +1040,13 @@ key "revisitingTwoSample"
 
 \end_inset
 
- to the generated and true data; but, like high-dimensional approximations
- for KS, there is no one accepted way to do so.
+ to the generated and the true data; but, like high-dimensional approximations
+ for CDF-based statistics, there is no one gold-standard way to do so.
 \end_layout
 
 \begin_layout Standard
-The oscillator behavior of the model (in both goodness-of-fit statistics
- and loss function) might be due to the using of cross-entropy loss; were
- as a model based on a smoother loss function like Earth-Mover Distance
- (Wasserstein distance) as suggested in 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "arjovsky2017wasserstein"
-
-\end_inset
-
- might produce more stable results.
- 
-\end_layout
-
-\begin_layout Standard
-We must remember that GAN models were derived for the sake of their generator.
+Finally, We must remember that GAN models were derived for the sake of their
+ generator.
  No fundamental work was done on the model's discriminator since it is always
  discarded after training.
  We hope this work can convince that there might be a good use for the discrimin
