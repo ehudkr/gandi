@@ -5,8 +5,9 @@ anomaly detection.
 
 ## Motivation
 
-*\[For more comprehensive explanation, see the pdf file in the paper 
-folder]*  
+*\[For more comprehensive explanation, see the 
+[pdf](https://github.com/ehudkr/gandi/blob/master/paper/gandi_paper_3.pdf) 
+file in the [paper folder](https://github.com/ehudkr/gandi/tree/master/paper)]*  
 
 Anomaly detection is hard. The possible number of different types of 
 anomalies cannot be accounted for. Thus, in order to train an anomaly 
@@ -38,41 +39,53 @@ resulting confusion matrix, mainly the area under the curve (AUC).
 ### Results
 
 The generator converging to the true data (PDF and CDF):  
-![pdf]() ![cdf]()
+![pdf](https://github.com/ehudkr/gandi/blob/master/paper/figs/pdf_through_time.gif) 
+![cdf](https://github.com/ehudkr/gandi/blob/master/paper/figs/cdf_through_time.gif)
 
 The discriminator performance as anomaly detector during training:
-![roc curve of GAN anomaly detector for growing anomalies]()
+![roc curve of GAN anomaly detector for growing anomalies](https://github.com/ehudkr/gandi/blob/master/paper/figs/roc_neg__through_time.gif)
+
+More similar results [here](https://github.com/ehudkr/gandi/tree/master/paper/figs).
 
 ## Code
 
 ### Description of Files:
 
-[//]: # (Convert the Bold type face to links after publishing in GitHub)
- 
-* **PlayGround** - Main file running the project.
-* **RunParams** - Static file with setting declarations (the NN architecture,
+* [**PlayGround**](https://github.com/ehudkr/gandi/blob/master/PlayGround.py) - 
+    Main file running the project.
+* [**RunParams**](https://github.com/ehudkr/gandi/blob/master/RunParams.py) - 
+    Static file with setting declarations (the NN architecture,
                   training and losses, training parameters, what tests to
                   perform and how often, etc.)
-* **Distributions** - Class depicting different distributions being used in
+* [**Distributions**](https://github.com/ehudkr/gandi/blob/master/Distributions.py) - 
+    Class depicting different distributions being used in
                       the demonstration. E.g. wrapping SciPy's Gaussian 
                       distribution.
-* **DiscriminatorNN** - Discriminator class and different discriminator's
+* [**DiscriminatorNN**](https://github.com/ehudkr/gandi/blob/master/DiscriminatorNN.py) - 
+    Discriminator class and different discriminator's
                         neural architectures.
-* **GeneratorNN** - Generator class and different generator's neural 
+* [**GeneratorNN**](https://github.com/ehudkr/gandi/blob/master/GeneratorNN.py) - 
+    Generator class and different generator's neural 
                     architectures.
-* **NNbuilds** - Helper for defining linear layers and optimizers for 
+* [**NNbuilds**](https://github.com/ehudkr/gandi/blob/master/NNbuilds.py) - 
+    Helper for defining linear layers and optimizers for 
                  TensorFlow networks. Shared to both discriminator and
                  generator.
-* **Tracker** - An object tracking the progress of training process. It
+* [**Tracker**](https://github.com/ehudkr/gandi/blob/master/Tracker.py) - 
+    An object tracking the progress of training process. It
                 is called every iteration of training and decides id test
                 should be conducted and registered and if there suppose to
                 be any logging of current models parameters.
-* **MetricsG** - Module of different goodness-of-fit tests to be conducted
+* [**MetricsG**](https://github.com/ehudkr/gandi/blob/master/MetricsG.py) - 
+    Module of different goodness-of-fit tests to be conducted
                  on the generator during training process.
-* **MetricsD** - Object for testing the discriminator (as an anomaly
+* [**MetricsD**](https://github.com/ehudkr/gandi/blob/master/MetricsD.py) - 
+    Object for testing the discriminator (as an anomaly
                  detector during training).
-* **GAN** - Class for training the GAN model.
-* **Plots** - Plotting class generating different plots based on the resulting
+* [**GAN**](https://github.com/ehudkr/gandi/blob/master/GAN.py) - 
+    Class for training the GAN model.
+* [**Plots**](https://github.com/ehudkr/gandi/blob/master/Plots.py) - 
+    Plotting class generating different plots based on the resulting
               statistics of the generator, discriminator (anomaly detector),
               and the neural network training progress.
 
@@ -95,8 +108,7 @@ Running *PlayGround.py* creates many files, each with a unique name
 * results (pickle file of plots objects (figure), and raw measurements 
           (DataFrame))
 
-Please make sure that before running, you have the following workspace
-structure of subdirectories:
+The subdirectories-structure created is as follows:
 ```
 gandi-
      |-GAN.py
@@ -111,10 +123,13 @@ gandi-
 ```
 
 Each model configuration will create a unique subdirectory (or file) under
-this structure using the time of start, random state nd configuration
+this structure using the time of start, random state and configuration
 setting number.  
 For example:  
 `GAN_2017-05-23_13-47-50_966105-765644_9`
+Is an experiment testing setting no. 9 (see `train_params` in *RunParams.py*) 
+started on May 23rd 2017 on 13:47:50 with *NumPy*'s random state `966105` and 
+*Tensoflow*'s random state `765644`.
 
 ### Running
 
@@ -134,7 +149,7 @@ For example:
    _arch_types = {"architecture_1": architecture_1,
                   ...
                   "architecture_n": architecture_n}
-   ```  
+   ```
    and then add it to the *RunParam.py* `train_params` dictionary:  
    `{"d_arch_num": n, "g_arch_num": m}`
 
@@ -150,7 +165,14 @@ Please contact before citing, using or if willing to expand this work.
 
 ## Acknowledgments
 
+* [Aylien](https://aylien.com/)'s excellent [blog post about GANs](http://blog.aylien.com/introduction-generative-adversarial-networks-code-tensorflow/)
+  for helping me starting up the code base.
+* [Eric Jang](http://blog.evjang.com/) too has an excellent 
+  [GANs in TensorFlow blog post](http://blog.evjang.com/2016/06/generative-adversarial-nets-in.html)
+
 * The Python and scientific-Python development community.
 * [JetBrains](https://www.jetbrains.com/) for free 
-  [PyCharm](https://www.jetbrains.com/pycharm/) license for students. 
+  [PyCharm](https://www.jetbrains.com/pycharm/) license for students.
+
+Feel free to contact me regarding this project!
 
